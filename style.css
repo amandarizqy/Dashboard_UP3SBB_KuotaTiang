@@ -1,0 +1,147 @@
+:root {
+    --sidebar-width: 70px;
+    --sidebar-expanded: 240px;
+    --primary-bg: #f4f7f6;
+    --accent-blue: #00A3E0; /* Warna biru identitas PLN */
+    --gray-light: #e0e0e0;
+    --text-dark: #333;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    display: flex;
+    height: 100vh;
+    background-color: var(--primary-bg);
+    color: var(--text-dark);
+}
+
+/* --- Sidebar Style --- */
+#sidebar {
+    width: var(--sidebar-width);
+    background-color: var(--gray-light);
+    height: 100%;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    border-right: 4px solid var(--accent-blue);
+    z-index: 100;
+}
+
+#sidebar.expanded {
+    width: var(--sidebar-expanded);
+}
+
+.nav-item {
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    color: var(--text-dark);
+    text-decoration: none;
+    white-space: nowrap;
+    border-left: 4px solid transparent;
+    transition: 0.2s;
+}
+
+.nav-item:hover {
+    background-color: #d8d8d8;
+    border-left: 4px solid var(--accent-blue);
+}
+
+.nav-item i {
+    font-size: 22px;
+    min-width: 30px;
+    margin-right: 20px;
+    text-align: center;
+}
+
+/* --- Main Content Style --- */
+#main-content {
+    flex-grow: 1;
+    padding: 40px;
+    overflow-y: auto;
+}
+
+.header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 40px;
+}
+
+.title-group h1 {
+    font-size: 48px;
+    margin: 0;
+    font-weight: 600;
+    letter-spacing: -1px;
+}
+
+.date-badge {
+    background-color: var(--gray-light);
+    padding: 6px 15px;
+    display: inline-block;
+    margin-top: 12px;
+    font-size: 14px;
+    border-radius: 2px;
+    color: #555;
+}
+
+.total-quota-box {
+    background-color: var(--gray-light);
+    min-width: 120px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 42px;
+    font-weight: bold;
+    border-radius: 4px;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.05);
+}
+
+/* --- Table Style --- */
+.table-container {
+    background: white;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.table-container h3 {
+    margin-top: 0;
+    color: var(--accent-blue);
+    border-bottom: 2px solid var(--primary-bg);
+    padding-bottom: 10px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    background-color: #fafafa;
+    color: #666;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+}
+
+th, td {
+    text-align: left;
+    padding: 18px 15px;
+    border-bottom: 1px solid #eee;
+}
+
+tr:hover {
+    background-color: #fcfcfc;
+}
+
+/* Kolom Angka agar lebih rapi */
+.col-number {
+    text-align: center;
+    font-weight: bold;
+}
