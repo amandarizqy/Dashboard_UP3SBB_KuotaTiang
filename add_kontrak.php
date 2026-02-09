@@ -130,11 +130,11 @@ if (isset($_POST['save'])) {
         <div style="display: flex; gap: 20px;">
             <div class="form-group" style="flex: 1;">
                 <label>Tanggal Terbit</label>
-                <input type="date" name="tanggal_terbit" class="form-control" required>
+                <input id="tanggal_terbit" type="date" name="tanggal_terbit" class="form-control" required>
             </div>
             <div class="form-group" style="flex: 1;">
                 <label>Batas Berlaku</label>
-                <input type="date" name="akhir_tenggat" class="form-control" required>
+                <input id="akhir_tenggat" type="date" name="akhir_tenggat" class="form-control" required>
             </div>
         </div>
 
@@ -149,6 +149,42 @@ if (isset($_POST['save'])) {
         <a href="manage.php?table=kontrak" class="btn-cancel">Batal dan Kembali</a>
     </form>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tInput = document.getElementById('tanggal_terbit');
+    const endInput = document.getElementById('akhir_tenggat');
+
+    function toYMD(d) {
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        return yyyy + '-' + mm + '-' + dd;
+    }
+
+    function addDays(dateObj, days) {
+        const d = new Date(dateObj.getTime());
+        d.setDate(d.getDate() + days);
+        return d;
+    }
+
+    function updateEnd() {
+        if (!tInput.value) return;
+        const dt = new Date(tInput.value + 'T00:00:00');
+        if (isNaN(dt)) return;
+        const end = addDays(dt, 60);
+        endInput.value = toYMD(end);
+    }
+
+    tInput.addEventListener('change', updateEnd);
+    tInput.addEventListener('input', updateEnd);
+
+    // Jika form diisi ulang (mis. back), set otomatis
+    if (tInput.value && !endInput.value) {
+        updateEnd();
+    }
+});
+</script>
 
 </body>
 </html>

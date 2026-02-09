@@ -140,7 +140,7 @@
             <a href="kelola_kontrak.php" class="menu-card">
                 <i class="fas fa-file-signature"></i>
                 <h3>Data Kontrak</h3>
-                <p>Kelola nomor kontrak dan alokasi kuota tiang vendor dengan fitur filter tanggal.</p>
+                <p>Kelola nomor kontrak dan alokasi kuota tiang vendor.</p>
             </a>
 
             <a href="manage.php?table=tiang" class="menu-card">
