@@ -121,27 +121,38 @@ table {
     border-collapse: collapse;
 }
 
+/* Update pada style.css */
+
 th {
-    background-color: #fafafa;
-    color: #666;
+    background-color: #f8f9fa;
+    color: #444;
     font-weight: 600;
     text-transform: uppercase;
-    font-size: 12px;
-    letter-spacing: 0.5px;
+    font-size: 11px; /* Sedikit diperkecil karena kolom bertambah */
+    letter-spacing: 0.8px;
+    border-top: 1px solid #dee2e6;
 }
 
-th, td {
-    text-align: left;
-    padding: 18px 15px;
-    border-bottom: 1px solid #eee;
+td {
+    font-size: 14px;
+    color: #555;
 }
 
-tr:hover {
-    background-color: #fcfcfc;
+/* Memberikan warna berbeda untuk kolom tanggal agar mudah dibaca */
+td:nth-child(4), td:nth-child(5) {
+    color: #007BFF;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
 }
 
-/* Kolom Angka agar lebih rapi */
+/* Penekanan pada Kuota */
 .col-number {
     text-align: center;
-    font-weight: bold;
+    font-weight: 800;
+    color: #333;
+    background-color: #f0f0f0;
+}
+
+tr:hover td {
+    background-color: #f2f9ff;
 }
