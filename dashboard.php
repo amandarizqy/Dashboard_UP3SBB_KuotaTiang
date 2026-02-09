@@ -292,7 +292,6 @@ $tanggal_filter = isset($_GET['filter_tgl']) ? $_GET['filter_tgl'] : date('Y-m-d
                         <th>Spesifikasi Tiang</th>
                         <th>Jatuh Tempo</th>
                         <th style="text-align: center;">Kuota</th>
-                        <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -317,11 +316,6 @@ $tanggal_filter = isset($_GET['filter_tgl']) ? $_GET['filter_tgl'] : date('Y-m-d
                                 <td><span class="badge-tiang"><?php echo $row['jenis_tiang']; ?></span></td>
                                 <td><i class="far fa-calendar-check" style="color: #888;"></i> <?php echo date('d/m/Y', strtotime($row['akhir_tenggat'])); ?></td>
                                 <td class="col-kuota"><?php echo $row['kuota']; ?></td>
-                                <td>
-                                    <a href="edit.php?id=<?php echo $row['id_kontrak']; ?>" class="btn-edit">
-                                        <i class="fas fa-edit"></i> Edit
-                                    </a>
-                                </td>
                             </tr>
                             <?php
                         }

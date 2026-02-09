@@ -42,7 +42,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background: white; /* Putih agar logo terlihat jelas */
+            background: white;
             margin-bottom: 20px;
         }
 
@@ -116,50 +116,43 @@
 </head>
 <body>
 
-     <nav id="sidebar">
+    <nav id="sidebar">
         <div class="sidebar-header">
             <img src="logo_PLN.png" alt="Logo PLN" class="logo-sidebar">
         </div>
-
         <div class="nav-item" onclick="toggleSidebar()">
             <i class="fas fa-bars"></i><span>Tutup/Buka Menu</span>
         </div>
-
         <a href="dashboard.php" class="nav-item">
             <i class="fas fa-home"></i><span>Beranda Dashboard</span>
         </a>
-
         <hr style="width: 80%; border: 0.5px solid rgba(255,255,255,0.2); margin: 15px auto;">
-        
         <a href="menu.php" class="nav-item">
             <i class="fas fa-database"></i><span>Manajemen Data</span>
         </a>
         <a href="#" class="nav-item">
             <i class="fas fa-history"></i><span>History</span>
         </a>
-        <a href="#" class="nav-item">
-            <i class="fas fa-user-shield"></i><span>Admin Setting</span>
-        </a>
     </nav>
 
     <main id="main-content">
         <div class="menu-container">
-            <a href="manage.php?table=kontrak" class="menu-card">
+            <a href="kelola_kontrak.php" class="menu-card">
                 <i class="fas fa-file-signature"></i>
                 <h3>Data Kontrak</h3>
-                <p>Kelola nomor kontrak, rentang waktu, dan alokasi kuota tiang vendor.</p>
+                <p>Kelola nomor kontrak dan alokasi kuota tiang vendor dengan fitur filter tanggal.</p>
             </a>
 
             <a href="manage.php?table=tiang" class="menu-card">
                 <i class="fas fa-bolt"></i>
                 <h3>Data Tiang</h3>
-                <p>Kelola spesifikasi teknis (daN) dan jenis tiang yang tersedia.</p>
+                <p>Kelola spesifikasi teknis dan jenis tiang meter/daN yang tersedia.</p>
             </a>
 
             <a href="manage.php?table=vendor" class="menu-card">
                 <i class="fas fa-industry"></i>
                 <h3>Data Vendor</h3>
-                <p>Kelola daftar mitra penyedia barang dan profil vendor PLN.</p>
+                <p>Kelola daftar mitra penyedia barang dan profil vendor resmi PLN.</p>
             </a>
         </div>
     </main>

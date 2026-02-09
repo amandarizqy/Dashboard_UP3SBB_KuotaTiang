@@ -2,7 +2,14 @@
 include 'koneksi.php'; 
 $table = isset($_GET['table']) ? $_GET['table'] : 'vendor';
 
-// Logika Hapus
+// 1. LOGIKA NAVIGASI TOMBOL TAMBAH (Diletakkan di atas agar variabel terbaca)
+if ($table == 'kontrak') {
+    $add_link = "add_kontrak.php";
+} else {
+    $add_link = "add.php?table=" . $table; 
+}
+
+// 2. LOGIKA HAPUS
 if (isset($_GET['delete_id'])) {
     $id_name = "id_" . $table;
     $del_id = $_GET['delete_id'];
@@ -11,7 +18,7 @@ if (isset($_GET['delete_id'])) {
     exit;
 }
 
-// Ambil kolom database untuk header dan fitur cari
+// 3. AMBIL KOLOM DATABASE
 $columns = array();
 $res = mysqli_query($conn, "SHOW COLUMNS FROM $table");
 while($col = mysqli_fetch_assoc($res)) {
@@ -29,7 +36,6 @@ while($col = mysqli_fetch_assoc($res)) {
         :root { --pln-blue: #00A3E0; --pln-yellow: #FFD100; }
         body { background-color: #f8f9fa; margin: 0; padding: 20px; font-family: 'Segoe UI', sans-serif; }
         
-        /* Layout utama: panel kiri (fixed) dan konten kanan (scrollable) */
         .main-wrapper { 
             display: flex; 
             gap: 24px; 
@@ -38,7 +44,7 @@ while($col = mysqli_fetch_assoc($res)) {
             margin: 0 auto; 
         }
 
-        /* --- KONTINER KIRI (Panel Kontrol) --- */
+        /* Panel Kiri Tetap (Sticky) */
         .left-panel { 
             width: 320px; 
             background: white; 
@@ -52,43 +58,17 @@ while($col = mysqli_fetch_assoc($res)) {
             top: 20px;
         }
 
-        /* --- KONTINER KANAN (Tabel Data) --- */
-        .right-panel { 
-            flex: 1; 
-            min-width: 0; 
-        }
+        .right-panel { flex: 1; min-width: 0; }
 
         .logo-img { height: 60px; object-fit: contain; margin-bottom: 10px; }
-        .back-btn { 
-            text-decoration: none; 
-            color: var(--pln-blue); 
-            font-weight: 600; 
-            display: inline-block; 
-            margin-bottom: 10px;
-            font-size: 14px;
-        }
+        .back-btn { text-decoration: none; color: var(--pln-blue); font-weight: 600; font-size: 14px; }
 
         .header-title h2 { margin: 0; color: #333; font-size: 22px; }
         .header-title small { color: #888; display: block; margin-top: 5px; }
 
-        .search-form { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
-        .search-input { 
-            padding: 12px; 
-            border: 1px solid #ddd; 
-            border-radius: 10px; 
-            font-size: 14px; 
-            outline: none;
-        }
-        .search-input:focus { border-color: var(--pln-blue); }
-        .search-btn { 
-            padding: 12px; 
-            border-radius: 10px; 
-            border: none; 
-            background: var(--pln-blue); 
-            color: white; 
-            font-weight: bold; 
-            cursor: pointer; 
-        }
+        .search-form { display: flex; flex-direction: column; gap: 10px; }
+        .search-input { padding: 12px; border: 1px solid #ddd; border-radius: 10px; outline: none; }
+        .search-btn { padding: 12px; border-radius: 10px; border: none; background: var(--pln-blue); color: white; font-weight: bold; cursor: pointer; }
 
         .btn-add { 
             background: var(--pln-yellow); 
@@ -99,18 +79,17 @@ while($col = mysqli_fetch_assoc($res)) {
             font-weight: 800; 
             text-align: center;
             display: block;
-            margin-top: 10px;
             box-shadow: 0 4px 10px rgba(255, 209, 0, 0.2);
         }
 
-        /* Styling Tabel Renggang */
+        /* Tabel Renggang */
         table { width: 100%; border-collapse: separate; border-spacing: 0 15px; }
-        th { padding: 10px 20px; text-align: left; color: #aaa; font-size: 12px; text-transform: uppercase; }
-        td { padding: 25px 20px; background: white; vertical-align: middle; }
-        tr td:first-child { border-radius: 15px 0 0 15px; font-weight: bold; }
-        tr td:last-child { border-radius: 0 15px 15px 0; text-align: right; }
+        th { padding: 10px 20px; text-align: left; color: #aaa; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+        td { padding: 25px 20px; background: white; vertical-align: middle; border-top: 1px solid #f0f0f0; border-bottom: 1px solid #f0f0f0; }
+        tr td:first-child { border-radius: 15px 0 0 15px; border-left: 1px solid #f0f0f0; }
+        tr td:last-child { border-radius: 0 15px 15px 0; border-right: 1px solid #f0f0f0; text-align: right; }
         
-        .action-btns a { margin-left: 15px; text-decoration: none; font-weight: bold; font-size: 14px; }
+        .action-btns a { margin-left: 15px; text-decoration: none; font-weight: bold; font-size: 13px; }
         .delete { color: #e74c3c; }
         .edit { color: var(--pln-blue); }
     </style>
@@ -126,17 +105,17 @@ while($col = mysqli_fetch_assoc($res)) {
 
             <div class="header-title">
                 <h2>Kelola <?php echo ucfirst($table); ?></h2>
-                <small>Manajemen Database Kuota Tiang</small>
+                <small>Manajemen Database Distribusi</small>
             </div>
 
             <form method="GET" class="search-form">
                 <input type="hidden" name="table" value="<?php echo htmlspecialchars($table); ?>">
                 <input type="text" name="q" class="search-input" placeholder="Cari data..." value="<?php echo isset($_GET['q'])?htmlspecialchars($_GET['q']):''; ?>">
-                <button type="submit" class="search-btn"><i class="fas fa-search"></i> Cari</button>
+                <button type="submit" class="search-btn"><i class="fas fa-search"></i> CARI</button>
             </form>
 
-            <a href="add.php?table=<?php echo $table; ?>" class="btn-add">
-                <i class="fas fa-plus-circle"></i> TAMBAH DATA BARU
+            <a href="<?php echo $add_link; ?>" class="btn-add">
+                <i class="fas fa-plus-circle"></i> TAMBAH <?php echo strtoupper($table); ?>
             </a>
         </aside>
 
@@ -145,12 +124,11 @@ while($col = mysqli_fetch_assoc($res)) {
                 <thead>
                     <tr>
                         <?php foreach ($columns as $c) { echo "<th>" . str_replace('_', ' ', $c) . "</th>"; } ?>
-                        <th>Aksi</th>
+                        <th>AKSI</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php
-                    // Logika Pencarian Dinamis
                     $sql = "SELECT * FROM $table";
                     if (isset($_GET['q']) && trim($_GET['q']) !== '') {
                         $q = mysqli_real_escape_string($conn, $_GET['q']);
