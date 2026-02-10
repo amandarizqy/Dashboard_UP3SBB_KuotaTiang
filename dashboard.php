@@ -75,14 +75,13 @@ $filter_tiang  = isset($_GET['filter_tiang']) ? $_GET['filter_tiang'] : '';
                     $where_sql = " WHERE " . implode(" AND ", $where_clauses);
                 }
 
-                // 2. Query Total: Menghitung Sisa Kuota (Kuota Awal - Terpakai) 
-                // hanya untuk data yang tampil di tabel (berdasarkan filter)
+                // 2. Query Total: Hitung sisa kuota per kontrak, lalu sum semuanya
+                // Untuk setiap kontrak yang sesuai filter: (kuota - kebutuhan)
+                // Kemudian sum hasil pengurangan dari semua kontrak yang sesuai filter
                 $sql_total_sinkron = "SELECT 
-                    (SUM(k.kuota) - 
-                        IFNULL((SELECT SUM(p.kebutuhan) 
-                                FROM pemesanan p 
-                                JOIN kontrak k2 ON p.id_kontrak = k2.id_kontrak 
-                                $where_sql), 0)
+                    SUM(k.kuota - IFNULL((SELECT SUM(p.kebutuhan) 
+                                          FROM pemesanan p 
+                                          WHERE p.id_kontrak = k.id_kontrak), 0)
                     ) as hasil_sinkron
                     FROM kontrak k
                     $where_sql";
