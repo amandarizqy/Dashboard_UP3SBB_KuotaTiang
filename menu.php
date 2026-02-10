@@ -7,22 +7,24 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { 
-            --pln-blue: #00A3E0; 
-            --pln-yellow: #FFD100; 
+        :root {
+            --pln-blue: #00A3E0;
+            --pln-yellow: #FFD100;
             --bg-gray: #f4f7f9;
+            --sidebar-width: 70px;
+            --sidebar-expanded: 240px;
         }
 
         body { 
             background-color: var(--bg-gray); 
-            font-family: 'Segoe UI', sans-serif; 
             margin: 0; 
-            display: flex; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
         }
 
-        /* --- Sidebar Samping Biru PLN --- */
+        /* --- Sidebar Samping --- */
         #sidebar {
-            width: 70px;
+            width: var(--sidebar-width);
             background-color: var(--pln-blue);
             color: white;
             height: 100vh;
@@ -35,14 +37,14 @@
             z-index: 1000;
         }
 
-        #sidebar.expanded { width: 240px; }
+        #sidebar.expanded { width: var(--sidebar-expanded); }
 
         .sidebar-header {
             padding: 20px 10px;
             display: flex;
             justify-content: center;
             align-items: center;
-            background: white;
+            background: white; /* Putih agar logo terlihat jelas */
             margin-bottom: 20px;
         }
 
@@ -62,7 +64,19 @@
             text-decoration: none;
             cursor: pointer;
             white-space: nowrap;
-            transition: 0.3s; 
+            transition: 0.3s;
+            pointer-events: auto;
+        }
+
+        a.nav-item {
+            display: flex;
+            color: white;
+            text-decoration: none;
+        }
+
+        a.nav-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-left: 5px solid var(--pln-yellow);
         }
 
         .nav-item i { font-size: 24px; min-width: 30px; margin-right: 20px; text-align: center; }
@@ -73,13 +87,14 @@
 
         /* --- Main Content --- */
         #main-content { 
-            margin-left: 70px; 
+            margin-left: var(--sidebar-width);
             flex-grow: 1; 
             display: flex; 
             justify-content: center; 
             align-items: center; 
             min-height: 100vh;
             transition: 0.3s;
+            padding: 40px;
         }
 
         .menu-container {
@@ -120,18 +135,28 @@
         <div class="sidebar-header">
             <img src="logo_PLN.png" alt="Logo PLN" class="logo-sidebar">
         </div>
+
         <div class="nav-item" onclick="toggleSidebar()">
             <i class="fas fa-bars"></i><span>Tutup/Buka Menu</span>
         </div>
+
         <a href="dashboard.php" class="nav-item">
             <i class="fas fa-home"></i><span>Beranda Dashboard</span>
         </a>
+
         <hr style="width: 80%; border: 0.5px solid rgba(255,255,255,0.2); margin: 15px auto;">
+        
         <a href="menu.php" class="nav-item">
             <i class="fas fa-database"></i><span>Manajemen Data</span>
         </a>
-        <a href="#" class="nav-item">
+        <a href="pemesanan.php" class="nav-item">
+            <i class="fas fa-shopping-cart"></i><span>Pemesanan</span>
+        </a>
+        <a href="histori.php" class="nav-item">
             <i class="fas fa-history"></i><span>History</span>
+        </a>
+        <a href="#" class="nav-item">
+            <i class="fas fa-user-shield"></i><span>Admin Setting</span>
         </a>
     </nav>
 
@@ -161,6 +186,19 @@
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('expanded');
         }
+
+        // Pastikan nav links bekerja
+        document.addEventListener('DOMContentLoaded', function() {
+            const navLinks = document.querySelectorAll('a.nav-item');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    const href = this.getAttribute('href');
+                    if (href && href !== '#') {
+                        window.location.href = href;
+                    }
+                });
+            });
+        });
     </script>
 </body>
 </html>
