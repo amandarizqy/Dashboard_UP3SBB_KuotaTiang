@@ -84,12 +84,7 @@
             margin-bottom: 40px;
         }
 
-        .title-group h1 {
-            font-size: 3rem;
-            margin: 0;
-            color: var(--pln-blue);
-            font-weight: 800;
-        }
+
 
         .filter-container {
             display: flex;
@@ -120,10 +115,10 @@
         .total-quota-box {
             background: linear-gradient(135deg, var(--pln-blue) 0%, #008cc1 100%);
             color: white;
-            padding: 30px 60px;
-            font-size: 5rem;
+            padding: 15px 30px;
+            font-size: 2.5rem;
             font-weight: 900;
-            border-radius: 25px;
+            border-radius: 15px;
             box-shadow: 0 15px 35px rgba(0, 163, 224, 0.3);
             border-bottom: 8px solid var(--pln-yellow);
             text-align: center;

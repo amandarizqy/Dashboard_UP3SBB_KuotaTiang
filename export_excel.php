@@ -1,17 +1,37 @@
 <?php
 include 'koneksi.php';
 
-// Get filters dari GET parameter
-$filter_vendor = isset($_GET['filter_vendor']) ? $_GET['filter_vendor'] : '';
-$filter_tiang = isset($_GET['filter_tiang']) ? $_GET['filter_tiang'] : '';
+// Get filters dari GET parameter - Handle multiple selections
+$filter_vendors = isset($_GET['filter_vendor']) ? $_GET['filter_vendor'] : [];
+$filter_tiangs = isset($_GET['filter_tiang']) ? $_GET['filter_tiang'] : [];
+$filter_status = isset($_GET['filter_status']) ? $_GET['filter_status'] : '';
 
-// Build WHERE clause
-$where_clauses = [];
-if (!empty($filter_vendor)) {
-    $where_clauses[] = "k.id_vendor = '$filter_vendor'";
+// Pastikan array
+if (!is_array($filter_vendors)) {
+    $filter_vendors = !empty($filter_vendors) ? [$filter_vendors] : [];
 }
-if (!empty($filter_tiang)) {
-    $where_clauses[] = "k.id_tiang = '$filter_tiang'";
+if (!is_array($filter_tiangs)) {
+    $filter_tiangs = !empty($filter_tiangs) ? [$filter_tiangs] : [];
+}
+// Normalize and apply status filter if provided
+$filter_status = trim($filter_status);
+
+
+// Build WHERE clause dengan IN untuk multiple values
+$where_clauses = [];
+if (!empty($filter_vendors)) {
+    $vendor_list = "'" . implode("','", array_map(function($v) { return mysqli_real_escape_string($GLOBALS['conn'], $v); }, $filter_vendors)) . "'";
+    $where_clauses[] = "k.id_vendor IN ($vendor_list)";
+}
+if (!empty($filter_tiangs)) {
+    $tiang_list = "'" . implode("','", array_map(function($t) { return mysqli_real_escape_string($GLOBALS['conn'], $t); }, $filter_tiangs)) . "'";
+    $where_clauses[] = "k.id_tiang IN ($tiang_list)";
+}
+if (!empty($filter_status)) {
+    $fs = mysqli_real_escape_string($conn, $filter_status);
+    // accept both 'non-aktif' and 'nonaktif' by normalizing
+    if ($fs === 'non-aktif') $fs = 'nonaktif';
+    $where_clauses[] = "k.status = '$fs'";
 }
 
 $where_sql = "";

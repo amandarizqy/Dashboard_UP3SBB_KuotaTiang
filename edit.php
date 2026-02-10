@@ -26,6 +26,7 @@ if (isset($_POST['update'])) {
     $kuota          = $_POST['kuota'];
     $tanggal_terbit = $_POST['tanggal_terbit'];
     $akhir_tenggat  = $_POST['akhir_tenggat'];
+    $status         = $_POST['status'];
 
     $sql_update = "UPDATE kontrak SET 
                     id_vendor = '$id_vendor', 
@@ -33,11 +34,12 @@ if (isset($_POST['update'])) {
                     nomor_kontrak = '$nomor_kontrak', 
                     kuota = '$kuota', 
                     tanggal_terbit = '$tanggal_terbit', 
-                    akhir_tenggat = '$akhir_tenggat' 
+                    akhir_tenggat = '$akhir_tenggat',
+                    status = '$status' 
                    WHERE id_kontrak = '$id'";
 
     if (mysqli_query($conn, $sql_update)) {
-        echo "<script>alert('Data Kontrak Berhasil Diperbarui!'); window.location='menu.php';</script>";
+        echo "<script>alert('Data Kontrak Berhasil Diperbarui!'); window.location='kelola_kontrak.php';</script>";
     } else {
         echo "<script>alert('Gagal memperbarui data: " . mysqli_error($conn) . "');</script>";
     }
@@ -141,10 +143,19 @@ if (isset($_POST['update'])) {
             </div>
         </div>
 
+        <div class="form-group">
+            <label>Status Kontrak</label>
+            <select name="status" class="form-control" required>
+                <option value="aktif" <?php echo ($data['status'] == 'aktif') ? 'selected' : ''; ?>>Aktif</option>
+                <option value="nonaktif" <?php echo ($data['status'] == 'nonaktif') ? 'selected' : ''; ?>>Non-Aktif</option>
+            </select>
+        </div>
+        
+
         <button type="submit" name="update" class="btn-update">
             <i class="fas fa-save"></i> SIMPAN PERUBAHAN
         </button>
-        <a href="menu.php" class="btn-cancel">Batal dan Kembali</a>
+        <a href="kelola_kontrak.php" class="btn-cancel">Batal dan Kembali</a>
     </form>
 </div>
 

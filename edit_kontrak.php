@@ -1,4 +1,4 @@
-<?php 
+<!-- <?php 
 include 'koneksi.php'; 
 
 // 1. Ambil ID dari URL
@@ -26,6 +26,7 @@ if (isset($_POST['update'])) {
     $id_tiang      = $_POST['id_tiang'];
     $id_vendor     = $_POST['id_vendor'];
     $kuota         = $_POST['kuota'];
+    $status        = $_POST['status'];
 
     $sql = "UPDATE kontrak SET 
             nomor_kontrak = '$nomor_kontrak', 
@@ -33,7 +34,8 @@ if (isset($_POST['update'])) {
             akhir_tenggat = '$tgl_tenggat', 
             id_tiang = '$id_tiang', 
             id_vendor = '$id_vendor', 
-            kuota = '$kuota' 
+            kuota = '$kuota',
+            status = '$status' 
             WHERE id_kontrak = '$id'";
 
     if (mysqli_query($conn, $sql)) {
@@ -147,6 +149,14 @@ if (isset($_POST['update'])) {
             <input type="number" name="kuota" class="form-control" value="<?php echo $data['kuota']; ?>" required>
         </div>
 
+        <div class="form-group">
+            <label>Status Kontrak</label>
+            <select name="status" class="form-control" required>
+                <option value="aktif" <?php echo ($data['status'] == 'aktif') ? 'selected' : ''; ?>>Aktif</option>
+                <option value="nonaktif" <?php echo ($data['status'] == 'nonaktif') ? 'selected' : ''; ?>>Non-Aktif</option>
+            </select>
+        </div>
+
         <button type="submit" name="update" class="btn-update">
             <i class="fas fa-save"></i> SIMPAN PERUBAHAN
         </button>
@@ -155,4 +165,4 @@ if (isset($_POST['update'])) {
 </div>
 
 </body>
-</html>
+</html> -->

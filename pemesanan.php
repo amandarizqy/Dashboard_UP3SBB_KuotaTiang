@@ -235,7 +235,6 @@ $offset = ($page - 1) * $limit;
                     }
                     ?>
                 </select>
-                <button type="submit" class="btn-filter"><i class="fas fa-filter"></i> Filter</button>
             </form>
         </div>
 
@@ -323,6 +322,13 @@ $offset = ($page - 1) * $limit;
 
     <script>
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('expanded'); }
+        
+        // Auto-submit form ketika ada perubahan pada dropdown
+        document.querySelectorAll('.filter-select').forEach(select => {
+            select.addEventListener('change', function() {
+                this.closest('form').submit();
+            });
+        });
     </script>
 </body>
 </html>

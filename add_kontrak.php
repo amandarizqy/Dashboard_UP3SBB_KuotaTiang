@@ -9,9 +9,10 @@ if (isset($_POST['save'])) {
     $id_tiang      = $_POST['id_tiang'];
     $id_vendor     = $_POST['id_vendor'];
     $kuota         = $_POST['kuota'];
+    $status        = $_POST['status'];
 
-    $query = "INSERT INTO kontrak (nomor_kontrak, tanggal_terbit, akhir_tenggat, id_tiang, id_vendor, kuota) 
-              VALUES ('$nomor_kontrak', '$tgl_terbit', '$tgl_tenggat', '$id_tiang', '$id_vendor', '$kuota')";
+    $query = "INSERT INTO kontrak (nomor_kontrak, tanggal_terbit, akhir_tenggat, id_tiang, id_vendor, kuota, status) 
+              VALUES ('$nomor_kontrak', '$tgl_terbit', '$tgl_tenggat', '$id_tiang', '$id_vendor', '$kuota', '$status')";
 
     if (mysqli_query($conn, $query)) {
         echo "<script>alert('Data Kontrak Berhasil Ditambahkan!'); window.location='manage.php?table=kontrak';</script>";
@@ -141,6 +142,14 @@ if (isset($_POST['save'])) {
         <div class="form-group">
             <label>Jumlah Kuota (Batang)</label>
             <input type="number" name="kuota" class="form-control" placeholder="Masukkan jumlah kuota" required>
+        </div>
+
+        <div class="form-group">
+            <label>Status Kontrak</label>
+            <select name="status" class="form-control" required>
+                <option value="aktif" selected>Aktif</option>
+                <option value="nonaktif">Non-Aktif</option>
+            </select>
         </div>
 
         <button type="submit" name="save" class="btn-submit">

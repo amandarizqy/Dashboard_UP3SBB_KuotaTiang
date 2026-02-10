@@ -13,6 +13,13 @@ $filter_tiang  = isset($_GET['filter_tiang']) ? $_GET['filter_tiang'] : '';
     <title>Dashboard PLN - Monitoring Kuota Tiang</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="styledashboard.css">
+    <style>
+        .total-quota-box {
+            padding: 15px 30px !important;
+            font-size: 2.5rem !important;
+            border-radius: 15px !important;
+        }
+    </style>
 </head>
 <body>
 
@@ -31,8 +38,8 @@ $filter_tiang  = isset($_GET['filter_tiang']) ? $_GET['filter_tiang'] : '';
     <main id="main-content">
         <header class="header-section">
             <div class="title-container">
-                <div class="title-group">
-                    <h1>Tiang Listrik</h1>
+                <div>
+                    <h1 style="margin:0; color:var(--pln-blue);">Tiang Listrik</h1>
                     <form action="" method="GET" class="filter-container">
                         <select name="filter_vendor" class="select-filter">
                             <option value="">Semua Vendor</option>
@@ -54,7 +61,6 @@ $filter_tiang  = isset($_GET['filter_tiang']) ? $_GET['filter_tiang'] : '';
                             }
                             ?>
                         </select>
-                        <button type="submit" class="btn-update">Filter</button>
                     </form>
                 </div>
             </div>
@@ -63,6 +69,7 @@ $filter_tiang  = isset($_GET['filter_tiang']) ? $_GET['filter_tiang'] : '';
                 <?php
                 // 1. Membangun kondisi WHERE yang sinkron dengan filter tabel
                 $where_clauses = [];
+                $where_clauses[] = "k.status = 'aktif'";
                 if (!empty($filter_vendor)) {
                     $where_clauses[] = "k.id_vendor = '$filter_vendor'";
                 }
@@ -116,9 +123,11 @@ $filter_tiang  = isset($_GET['filter_tiang']) ? $_GET['filter_tiang'] : '';
                             (k.kuota - IFNULL((SELECT SUM(kebutuhan) FROM pemesanan WHERE id_kontrak = k.id_kontrak), 0)) as sisa_kuota
                             FROM kontrak k
                             JOIN vendor v ON k.id_vendor = v.id_vendor
-                            JOIN tiang t ON k.id_tiang = t.id_tiang";
+                            JOIN tiang t ON k.id_tiang = t.id_tiang
+                            WHERE k.status = 'aktif'";
                     
-                    if(count($where_clauses) > 0) $sql .= " WHERE " . implode(" AND ", $where_clauses);
+                    if(!empty($filter_vendor)) $sql .= " AND k.id_vendor = '$filter_vendor'";
+                    if(!empty($filter_tiang)) $sql .= " AND k.id_tiang = '$filter_tiang'";
                     $sql .= " ORDER BY k.akhir_tenggat ASC";
                     
                     $result = mysqli_query($conn, $sql);
@@ -154,6 +163,13 @@ $filter_tiang  = isset($_GET['filter_tiang']) ? $_GET['filter_tiang'] : '';
 
     <script>
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('expanded'); }
+        
+        // Auto-submit form ketika ada perubahan pada dropdown
+        document.querySelectorAll('.select-filter').forEach(select => {
+            select.addEventListener('change', function() {
+                this.form.submit();
+            });
+        });
     </script>
 </body>
 </html>

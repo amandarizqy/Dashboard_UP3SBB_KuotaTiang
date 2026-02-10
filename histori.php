@@ -4,17 +4,35 @@ include 'koneksi.php';
 // Pengaturan Sidebar
 $expanded = isset($_GET['expand']) ? 'expanded' : '';
 
-// Filter settings
-$filter_vendor = isset($_GET['filter_vendor']) ? $_GET['filter_vendor'] : '';
-$filter_tiang = isset($_GET['filter_tiang']) ? $_GET['filter_tiang'] : '';
+// Filter settings - Handle multiple selections
+// Status filter: '' = semua, 'aktif' or 'nonaktif'
+$filter_status = isset($_GET['filter_status']) ? $_GET['filter_status'] : '';
 
-// Build WHERE clause
-$where_clauses = [];
-if (!empty($filter_vendor)) {
-    $where_clauses[] = "k.id_vendor = '$filter_vendor'";
+$filter_vendors = isset($_GET['filter_vendor']) ? $_GET['filter_vendor'] : [];
+$filter_tiangs = isset($_GET['filter_tiang']) ? $_GET['filter_tiang'] : [];
+
+// Pastikan array
+if (!is_array($filter_vendors)) {
+    $filter_vendors = !empty($filter_vendors) ? [$filter_vendors] : [];
 }
-if (!empty($filter_tiang)) {
-    $where_clauses[] = "k.id_tiang = '$filter_tiang'";
+if (!is_array($filter_tiangs)) {
+    $filter_tiangs = !empty($filter_tiangs) ? [$filter_tiangs] : [];
+}
+
+// Build WHERE clause dengan IN untuk multiple values
+$where_clauses = [];
+if (!empty($filter_vendors)) {
+    $vendor_list = implode("','", array_map('mysqli_real_escape_string', array_fill(0, count($filter_vendors), $conn), $filter_vendors));
+    $where_clauses[] = "k.id_vendor IN ('$vendor_list')";
+}
+if (!empty($filter_tiangs)) {
+    $tiang_list = implode("','", array_map('mysqli_real_escape_string', array_fill(0, count($filter_tiangs), $conn), $filter_tiangs));
+    $where_clauses[] = "k.id_tiang IN ('$tiang_list')";
+}
+// Apply status filter if provided
+if (!empty($filter_status)) {
+    $fs = mysqli_real_escape_string($conn, $filter_status);
+    $where_clauses[] = "k.status = '$fs'";
 }
 
 $where_sql = "";
@@ -42,10 +60,22 @@ if ($current_page > $total_pages) $current_page = $total_pages;
 
 $offset = ($current_page - 1) * $rows_per_page;
 
-// Build query string untuk pagination
+// Build query string untuk pagination dengan multiple selections
 $params = [];
-if (!empty($filter_vendor)) $params['filter_vendor'] = $filter_vendor;
-if (!empty($filter_tiang)) $params['filter_tiang'] = $filter_tiang;
+if (!empty($filter_vendors)) {
+    foreach ($filter_vendors as $v) {
+        $params['filter_vendor[]'] = $v;
+    }
+}
+if (!empty($filter_tiangs)) {
+    foreach ($filter_tiangs as $t) {
+        $params['filter_tiang[]'] = $t;
+    }
+}
+// include status in query string params when provided
+if (!empty($filter_status)) {
+    $params['filter_status'] = $filter_status;
+}
 
 $pagination_query_string = !empty($params) ? '&' . http_build_query($params) : '';
 $export_query_string = !empty($params) ? '?' . http_build_query($params) : '';
@@ -115,6 +145,11 @@ $export_query_string = !empty($params) ? '?' . http_build_query($params) : '';
             justify-content: space-between;
             align-items: center;
         }
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
 
         /* Table Styling */
         .table-container {
@@ -149,6 +184,45 @@ $export_query_string = !empty($params) ? '?' . http_build_query($params) : '';
         .row-spb { background-color: #f0f7ff; font-weight: bold; }
         .minus { color: #e74c3c; font-weight: bold; }
         .plus { color: #27ae60; font-weight: bold; }
+
+        /* Filter Checkbox List Styling */
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        .filter-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            color: #555;
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .filter-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .filter-section {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .filter-section-title {
+            font-weight: 700;
+            color: #333;
+            margin-top: 5px;
+        }
 
         /* Pagination Styling */
         .pagination-container {
@@ -206,17 +280,102 @@ $export_query_string = !empty($params) ? '?' . http_build_query($params) : '';
             font-weight: 500;
         }
 
+        /* Filter Button */
+        .filter-btn {
+            background-color: var(--pln-blue);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 14px;
+            transition: 0.3s;
+            margin-bottom: 30px;
+        }
+
+        .filter-btn:hover {
+            background-color: #0089c0;
+        }
+
+        /* Modal Styling */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            max-width: 500px;
+            width: 90%;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 15px;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: var(--pln-blue);
+            font-size: 20px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+            transition: 0.3s;
+        }
+
+        .modal-close:hover {
+            color: #333;
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
         /* Filter Styling */
         .filter-box {
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            margin-bottom: 30px;
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            flex-wrap: wrap;
+            background: transparent;
+            padding: 0;
+            margin-bottom: 0;
+            display: block;
+            box-shadow: none;
         }
 
         .filter-box label {
@@ -288,45 +447,69 @@ $export_query_string = !empty($params) ? '?' . http_build_query($params) : '';
                 <h1 style="margin:0; color:var(--pln-blue);">Database Keseluruhan</h1>
                 <p style="margin:5px 0 0; color:#888;">Rekapitulasi sinkronisasi Kuota Kontrak dan Realisasi Pemesanan WO</p>
             </div>
-            <a href="export_excel.php<?php echo $export_query_string; ?>" class="nav-item" style="background: var(--pln-blue); border-radius: 10px; border:none; cursor:pointer; text-decoration: none;">
-                <i class="fas fa-download"></i> <h3>Export</h3> <span>Export Excel</span> 
-            </a>
+            <div class="header-actions">
+                <a href="export_excel.php<?php echo $export_query_string; ?>" class="btn-action-export" style="background: var(--pln-blue); border-radius: 8px; border:none; cursor:pointer; text-decoration: none; color: white; padding: 8px 14px; font-weight: 700; font-size: 13px; display: inline-block;">
+                    <i class="fas fa-download"></i> Export
+                </a>
+                <button id="openFilterModal" class="btn-action-filter" style="background: var(--pln-yellow); border-radius: 8px; border:none; cursor:pointer; color: #222; font-weight: 700; padding: 8px 14px; font-size: 13px;">
+                    <i class="fas fa-filter"></i> Filter
+                </button>
+            </div>
         </div>
 
-        <!-- Filter Box -->
-        <div class="filter-box">
-            <form action="" method="GET" style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap; width: 100%;">
-                <div>
-                    <label for="filter_vendor">Filter Vendor:</label>
-                    <select name="filter_vendor" id="filter_vendor">
-                        <option value="">Semua Vendor</option>
-                        <?php 
-                        $v_list = mysqli_query($conn, "SELECT * FROM vendor ORDER BY nama_vendor ASC");
-                        while($v = mysqli_fetch_assoc($v_list)) {
-                            $sel = ($filter_vendor == $v['id_vendor']) ? 'selected' : '';
-                            echo "<option value='".$v['id_vendor']."' $sel>".$v['nama_vendor']."</option>";
-                        }
-                        ?>
-                    </select>
+        <!-- Filter Modal -->
+        <div id="filterModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Pengaturan Filter Data</h2>
+                    <button type="button" id="closeModal" class="modal-close">&times;</button>
                 </div>
+                <div class="modal-body">
+                    <form id="filterForm" action="" method="GET" style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; width: 100%; flex-direction: column;">
+                        <div class="filter-section">
+                            <div class="filter-section-title">Status Kontrak:</div>
+                            <div class="filter-group">
+                                <select name="filter_status" class="form-control" style="min-width:160px; padding:8px; border-radius:8px;">
+                                    <option value="" <?php echo ($filter_status == '') ? 'selected' : ''; ?>>Semua</option>
+                                    <option value="aktif" <?php echo ($filter_status == 'aktif') ? 'selected' : ''; ?>>Aktif</option>
+                                    <option value="nonaktif" <?php echo ($filter_status == 'nonaktif') ? 'selected' : ''; ?>>Non-Aktif</option>
+                                </select>
+                            </div>
+                        </div>
 
-                <div>
-                    <label for="filter_tiang">Filter Tiang:</label>
-                    <select name="filter_tiang" id="filter_tiang">
-                        <option value="">Semua Ukuran</option>
-                        <?php 
-                        $t_list = mysqli_query($conn, "SELECT * FROM tiang ORDER BY jenis_tiang ASC");
-                        while($t = mysqli_fetch_assoc($t_list)) {
-                            $sel = ($filter_tiang == $t['id_tiang']) ? 'selected' : '';
-                            echo "<option value='".$t['id_tiang']."' $sel>".$t['jenis_tiang']."</option>";
-                        }
-                        ?>
-                    </select>
+                        <div class="filter-section">
+                            <div class="filter-section-title">Pilih Vendor (PT):</div>
+                            <div class="filter-group">
+                                <?php 
+                                $v_list = mysqli_query($conn, "SELECT * FROM vendor ORDER BY nama_vendor ASC");
+                                while($v = mysqli_fetch_assoc($v_list)) {
+                                    $checked = in_array($v['id_vendor'], $filter_vendors) ? 'checked' : '';
+                                    echo "<label><input type='checkbox' name='filter_vendor[]' value='".$v['id_vendor']."' $checked> ".$v['nama_vendor']."</label>";
+                                }
+                                ?>
+                            </div>
+                        </div>
+
+                        <div class="filter-section">
+                            <div class="filter-section-title">Pilih Ukuran Tiang:</div>
+                            <div class="filter-group">
+                                <?php 
+                                $t_list = mysqli_query($conn, "SELECT * FROM tiang ORDER BY jenis_tiang ASC");
+                                while($t = mysqli_fetch_assoc($t_list)) {
+                                    $checked = in_array($t['id_tiang'], $filter_tiangs) ? 'checked' : '';
+                                    echo "<label><input type='checkbox' name='filter_tiang[]' value='".$t['id_tiang']."' $checked> ".$t['jenis_tiang']."</label>";
+                                }
+                                ?>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 15px; margin-top: 20px;">
+                            <button type="submit" style="background-color: var(--pln-blue); color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: 600; cursor: pointer;">Terapkan Filter</button>
+                            <a href="histori.php" style="background-color: #e9ecef; color: #555; border: 1px solid #ddd; padding: 12px 25px; border-radius: 8px; text-decoration: none; font-weight: 600; cursor: pointer; align-self: center;">Reset Filter</a>
+                        </div>
+                    </form>
                 </div>
-
-                <button type="submit">Filter</button>
-                <a href="histori.php">Reset</a>
-            </form>
+            </div>
         </div>
 
             <table>
@@ -507,6 +690,35 @@ $export_query_string = !empty($params) ? '?' . http_build_query($params) : '';
         function toggleSidebar() {
             document.getElementById('sidebar').classList.toggle('expanded');
         }
+        
+        // Modal functionality
+        const filterModal = document.getElementById('filterModal');
+        const openModalBtn = document.getElementById('openFilterModal');
+        const closeModalBtn = document.getElementById('closeModal');
+        
+        // Open modal
+        openModalBtn.addEventListener('click', function() {
+            filterModal.classList.add('show');
+        });
+        
+        // Close modal
+        closeModalBtn.addEventListener('click', function() {
+            filterModal.classList.remove('show');
+        });
+        
+        // Close modal when clicking outside of modal-content
+        filterModal.addEventListener('click', function(event) {
+            if (event.target === filterModal) {
+                filterModal.classList.remove('show');
+            }
+        });
+        
+        // Close modal when form is submitted
+        document.getElementById('filterForm').addEventListener('submit', function() {
+            setTimeout(() => {
+                filterModal.classList.remove('show');
+            }, 100);
+        });
     </script>
 </body>
 </html>

@@ -80,6 +80,7 @@ $q = isset($_GET['q']) ? mysqli_real_escape_string($conn, $_GET['q']) : '';
                         <th>Tanggal Terbit</th>
                         <th>Batas Berlaku</th>
                         <th>Kuota</th>
+                        <th>Status</th>
                         <th>AKSI</th>
                     </tr>
                 </thead>
@@ -109,6 +110,7 @@ $q = isset($_GET['q']) ? mysqli_real_escape_string($conn, $_GET['q']) : '';
                                 <td><?php echo date('d/m/Y', strtotime($row['tanggal_terbit'])); ?></td>
                                 <td><?php echo date('d/m/Y', strtotime($row['akhir_tenggat'])); ?></td>
                                 <td style="font-weight:bold; color:var(--pln-blue);"><?php echo $row['kuota']; ?></td>
+                                <td><?php echo $row['status']; ?></td>
                                 <td class="action-btns">
                                     <a href="edit.php?id=<?php echo $row['id_kontrak']; ?>" class="edit"><i class="fas fa-edit"></i> Edit</a>
                                     <a href="kelola_kontrak.php?delete_id=<?php echo $row['id_kontrak']; ?>" class="delete" onclick="return confirm('Hapus kontrak ini?')"><i class="fas fa-trash"></i> Hapus</a>
