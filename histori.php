@@ -3,6 +3,52 @@ include 'koneksi.php';
 
 // Pengaturan Sidebar
 $expanded = isset($_GET['expand']) ? 'expanded' : '';
+
+// Filter settings
+$filter_vendor = isset($_GET['filter_vendor']) ? $_GET['filter_vendor'] : '';
+$filter_tiang = isset($_GET['filter_tiang']) ? $_GET['filter_tiang'] : '';
+
+// Build WHERE clause
+$where_clauses = [];
+if (!empty($filter_vendor)) {
+    $where_clauses[] = "k.id_vendor = '$filter_vendor'";
+}
+if (!empty($filter_tiang)) {
+    $where_clauses[] = "k.id_tiang = '$filter_tiang'";
+}
+
+$where_sql = "";
+if (count($where_clauses) > 0) {
+    $where_sql = " WHERE " . implode(" AND ", $where_clauses);
+}
+
+// Pagination settings
+$rows_per_page = 10;
+$current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+if ($current_page < 1) $current_page = 1;
+
+// Hitung total data rows dengan filter
+$total_rows = 0;
+$q_kontrak_count = mysqli_query($conn, "SELECT k.id_kontrak FROM kontrak k $where_sql ORDER BY k.id_kontrak DESC");
+while($k = mysqli_fetch_assoc($q_kontrak_count)) {
+    $id_k = $k['id_kontrak'];
+    $q_pesan_count = mysqli_query($conn, "SELECT COUNT(*) as cnt FROM pemesanan WHERE id_kontrak = '$id_k'");
+    $p_cnt = mysqli_fetch_assoc($q_pesan_count);
+    $total_rows += max(1, $p_cnt['cnt']); // minimal 1 baris per kontrak
+}
+
+$total_pages = ceil($total_rows / $rows_per_page);
+if ($current_page > $total_pages) $current_page = $total_pages;
+
+$offset = ($current_page - 1) * $rows_per_page;
+
+// Build query string untuk pagination
+$params = [];
+if (!empty($filter_vendor)) $params['filter_vendor'] = $filter_vendor;
+if (!empty($filter_tiang)) $params['filter_tiang'] = $filter_tiang;
+
+$pagination_query_string = !empty($params) ? '&' . http_build_query($params) : '';
+$export_query_string = !empty($params) ? '?' . http_build_query($params) : '';
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -10,6 +56,7 @@ $expanded = isset($_GET['expand']) ? 'expanded' : '';
     <meta charset="UTF-8">
     <title>Database Keseluruhan - Monitoring Kuota PLN</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="styledashboard.css">
     <style>
         :root {
             --pln-blue: #00A3E0;
@@ -102,19 +149,137 @@ $expanded = isset($_GET['expand']) ? 'expanded' : '';
         .row-spb { background-color: #f0f7ff; font-weight: bold; }
         .minus { color: #e74c3c; font-weight: bold; }
         .plus { color: #27ae60; font-weight: bold; }
+
+        /* Pagination Styling */
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .pagination-btn {
+            display: inline-block;
+            padding: 10px 15px;
+            background-color: #f0f0f0;
+            color: #333;
+            text-decoration: none;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .pagination-btn:hover {
+            background-color: var(--pln-blue);
+            color: white;
+            border-color: var(--pln-blue);
+        }
+
+        .pagination-btn.active {
+            background-color: var(--pln-blue);
+            color: white;
+            border-color: var(--pln-blue);
+            font-weight: bold;
+        }
+
+        .pagination-btn:disabled,
+        .pagination-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination-btn:disabled:hover,
+        .pagination-btn.disabled:hover {
+            background-color: #f0f0f0;
+            color: #333;
+            border-color: #ddd;
+        }
+
+        .pagination-info {
+            color: #666;
+            font-weight: 500;
+        }
+
+        /* Filter Styling */
+        .filter-box {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-box label {
+            font-weight: 600;
+            color: #555;
+            margin-right: 5px;
+        }
+
+        .filter-box select {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: white;
+            min-width: 180px;
+            font-size: 14px;
+        }
+
+        .filter-box button {
+            background-color: var(--pln-yellow);
+            color: #222;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 8px;
+            font-weight: 800;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: 0.3s;
+        }
+
+        .filter-box button:hover {
+            background-color: #FFD100;
+            opacity: 0.9;
+        }
+
+        .filter-box a {
+            background-color: #e9ecef;
+            color: #555;
+            border: 1px solid #ddd;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .filter-box a:hover {
+            background-color: #dee2e6;
+        }
     </style>
 </head>
 <body>
 
-    <nav id="sidebar" id="sidebar">
-        <div style="padding: 20px; text-align: center; background: white; margin-bottom: 20px;">
-            <img src="logo_PLN.png" style="width: 40px;">
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <img src="logo_PLN.png" alt="Logo PLN" class="logo-sidebar">
         </div>
-        <div class="nav-item" onclick="toggleSidebar()"><i class="fas fa-bars"></i><span>Menu</span></div>
+        <div class="nav-item" onclick="toggleSidebar()"><i class="fas fa-bars"></i><span>Tutup/Buka Menu</span></div>
         <a href="dashboard.php" class="nav-item"><i class="fas fa-home"></i><span>Beranda Dashboard</span></a>
+        <hr style="width: 80%; border: 0.5px solid rgba(255,255,255,0.2); margin: 15px auto;">
         <a href="menu.php" class="nav-item"><i class="fas fa-database"></i><span>Manajemen Data</span></a>
         <a href="pemesanan.php" class="nav-item"><i class="fas fa-shopping-cart"></i><span>Pemesanan</span></a>
-        <a href="database.php" class="nav-item"><i class="fas fa-table"></i><span>Database Keseluruhan</span></a>
+        <a href="histori.php" class="nav-item"><i class="fas fa-history"></i><span>History</span></a>
     </nav>
 
     <main id="main-content">
@@ -123,12 +288,47 @@ $expanded = isset($_GET['expand']) ? 'expanded' : '';
                 <h1 style="margin:0; color:var(--pln-blue);">Database Keseluruhan</h1>
                 <p style="margin:5px 0 0; color:#888;">Rekapitulasi sinkronisasi Kuota Kontrak dan Realisasi Pemesanan WO</p>
             </div>
-            <button onclick="window.print()" class="nav-item" style="background: var(--pln-blue); border-radius: 10px; border:none; cursor:pointer;">
-                <i class="fas fa-print"></i> <span>Cetak Laporan</span>
-            </button>
+            <a href="export_excel.php<?php echo $export_query_string; ?>" class="nav-item" style="background: var(--pln-blue); border-radius: 10px; border:none; cursor:pointer; text-decoration: none;">
+                <i class="fas fa-download"></i> <h3>Export</h3> <span>Export Excel</span> 
+            </a>
         </div>
 
-        <div class="table-container">
+        <!-- Filter Box -->
+        <div class="filter-box">
+            <form action="" method="GET" style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap; width: 100%;">
+                <div>
+                    <label for="filter_vendor">Filter Vendor:</label>
+                    <select name="filter_vendor" id="filter_vendor">
+                        <option value="">Semua Vendor</option>
+                        <?php 
+                        $v_list = mysqli_query($conn, "SELECT * FROM vendor ORDER BY nama_vendor ASC");
+                        while($v = mysqli_fetch_assoc($v_list)) {
+                            $sel = ($filter_vendor == $v['id_vendor']) ? 'selected' : '';
+                            echo "<option value='".$v['id_vendor']."' $sel>".$v['nama_vendor']."</option>";
+                        }
+                        ?>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="filter_tiang">Filter Tiang:</label>
+                    <select name="filter_tiang" id="filter_tiang">
+                        <option value="">Semua Ukuran</option>
+                        <?php 
+                        $t_list = mysqli_query($conn, "SELECT * FROM tiang ORDER BY jenis_tiang ASC");
+                        while($t = mysqli_fetch_assoc($t_list)) {
+                            $sel = ($filter_tiang == $t['id_tiang']) ? 'selected' : '';
+                            echo "<option value='".$t['id_tiang']."' $sel>".$t['jenis_tiang']."</option>";
+                        }
+                        ?>
+                    </select>
+                </div>
+
+                <button type="submit">Filter</button>
+                <a href="histori.php">Reset</a>
+            </form>
+        </div>
+
             <table>
                 <thead>
                     <tr>
@@ -151,17 +351,21 @@ $expanded = isset($_GET['expand']) ? 'expanded' : '';
                 </thead>
                 <tbody>
                     <?php 
-                    // Ambil semua kontrak
+                    // Ambil semua kontrak dengan pemesanannya (dengan filter)
                     $q_kontrak = mysqli_query($conn, "SELECT k.*, v.nama_vendor, t.jenis_tiang 
                                                       FROM kontrak k 
                                                       JOIN vendor v ON k.id_vendor = v.id_vendor 
                                                       JOIN tiang t ON k.id_tiang = t.id_tiang 
+                                                      $where_sql
                                                       ORDER BY k.id_kontrak DESC");
                     
+                    // Kumpulkan semua row data
+                    $all_rows = [];
                     $no = 1;
+                    
                     while($k = mysqli_fetch_assoc($q_kontrak)) {
                         $id_k = $k['id_kontrak'];
-                        $kuota_berjalan = $k['kuota']; // Start saldo dari kuota kontrak
+                        $kuota_berjalan = $k['kuota'];
                         
                         // Ambil semua pemesanan untuk kontrak ini secara kronologis
                         $q_pesan = mysqli_query($conn, "SELECT p.*, u.kecamatan 
@@ -173,49 +377,129 @@ $expanded = isset($_GET['expand']) ? 'expanded' : '';
                         if(mysqli_num_rows($q_pesan) > 0) {
                             $first = true;
                             while($p = mysqli_fetch_assoc($q_pesan)) {
-                                $sisa_sebelumnya = $kuota_berjalan;
-                                $kuota_berjalan -= $p['kebutuhan']; // Logika pengurangan dinamis
-                                ?>
-                                <tr>
-                                    <td><?php echo $no++; ?></td>
-                                    <td><?php echo $k['nama_vendor']; ?></td>
-                                    <td><?php echo $k['jenis_tiang']; ?></td>
-                                    <td style="text-align:center; font-weight:bold;"><?php echo ($first) ? $k['kuota'] : ''; ?></td>
-                                    <td style="text-align:center; color:var(--pln-blue); font-weight:bold;"><?php echo $p['kebutuhan']; ?></td>
-                                    <td class="<?php echo ($kuota_berjalan < 0) ? 'minus' : 'plus'; ?>" style="text-align:center;">
-                                        <?php echo $kuota_berjalan; ?>
-                                    </td>
-                                    <td><?php echo $p['ket_kuota']; ?></td>
-                                    <td><?php echo $p['nama_pelanggan']; ?></td>
-                                    <td><?php echo $p['lokasi']; ?></td>
-                                    <td><?php echo $k['nomor_kontrak']; ?></td>
-                                    <td><?php echo date('d/m/Y', strtotime($k['tanggal_terbit'])); ?></td>
-                                    <td><?php echo date('d/m/Y', strtotime($k['akhir_tenggat'])); ?></td>
-                                    <td><?php echo $p['no_wo']; ?></td>
-                                    <td><?php echo date('d/m/Y', strtotime($p['tgl_wo'])); ?></td>
-                                    <td><?php echo $p['kecamatan']; ?></td>
-                                </tr>
-                                <?php
+                                $kuota_berjalan -= $p['kebutuhan'];
+                                
+                                $row_data = [
+                                    'no' => $no++,
+                                    'nama_vendor' => $k['nama_vendor'],
+                                    'jenis_tiang' => $k['jenis_tiang'],
+                                    'kuota_awal' => ($first) ? $k['kuota'] : '',
+                                    'kebutuhan' => $p['kebutuhan'],
+                                    'sisa_kuota' => $kuota_berjalan,
+                                    'ket_kuota' => $p['ket_kuota'],
+                                    'nama_pelanggan' => $p['nama_pelanggan'],
+                                    'lokasi' => $p['lokasi'],
+                                    'nomor_kontrak' => $k['nomor_kontrak'],
+                                    'tanggal_terbit' => date('d/m/Y', strtotime($k['tanggal_terbit'])),
+                                    'akhir_tenggat' => date('d/m/Y', strtotime($k['akhir_tenggat'])),
+                                    'no_wo' => $p['no_wo'],
+                                    'tgl_wo' => date('d/m/Y', strtotime($p['tgl_wo'])),
+                                    'kecamatan' => $p['kecamatan'],
+                                    'type' => 'pesan'
+                                ];
+                                $all_rows[] = $row_data;
                                 $first = false;
                             }
                         } else {
                             // Jika kontrak belum ada pemesanan sama sekali
-                            ?>
-                            <tr class="row-spb">
-                                <td><?php echo $no++; ?></td>
-                                <td><?php echo $k['nama_vendor']; ?></td>
-                                <td><?php echo $k['jenis_tiang']; ?></td>
-                                <td style="text-align:center;"><?php echo $k['kuota']; ?></td>
-                                <td style="text-align:center;">0</td>
-                                <td style="text-align:center;" class="plus"><?php echo $k['kuota']; ?></td>
-                                <td colspan="9" style="text-align:center; color:#aaa; font-style:italic;">Belum ada realisasi pemesanan untuk SPB ini</td>
-                            </tr>
-                            <?php
+                            $row_data = [
+                                'no' => $no++,
+                                'nama_vendor' => $k['nama_vendor'],
+                                'jenis_tiang' => $k['jenis_tiang'],
+                                'kuota_awal' => $k['kuota'],
+                                'kebutuhan' => 0,
+                                'sisa_kuota' => $k['kuota'],
+                                'ket_kuota' => '',
+                                'nama_pelanggan' => 'Belum ada realisasi',
+                                'lokasi' => '',
+                                'nomor_kontrak' => $k['nomor_kontrak'],
+                                'tanggal_terbit' => date('d/m/Y', strtotime($k['tanggal_terbit'])),
+                                'akhir_tenggat' => date('d/m/Y', strtotime($k['akhir_tenggat'])),
+                                'no_wo' => '',
+                                'tgl_wo' => '',
+                                'kecamatan' => '',
+                                'type' => 'empty'
+                            ];
+                            $all_rows[] = $row_data;
                         }
+                    }
+                    
+                    // Potong array untuk halaman saat ini
+                    $page_rows = array_slice($all_rows, $offset, $rows_per_page);
+                    
+                    // Tampilkan rows untuk halaman saat ini
+                    foreach($page_rows as $row) {
+                        if($row['type'] == 'empty') {
+                            echo '<tr class="row-spb">';
+                        } else {
+                            echo '<tr>';
+                        }
+                        echo '<td>' . $row['no'] . '</td>';
+                        echo '<td>' . $row['nama_vendor'] . '</td>';
+                        echo '<td>' . $row['jenis_tiang'] . '</td>';
+                        echo '<td style="text-align:center; font-weight:bold;">' . $row['kuota_awal'] . '</td>';
+                        echo '<td style="text-align:center; color:var(--pln-blue); font-weight:bold;">' . $row['kebutuhan'] . '</td>';
+                        $minus_class = ($row['sisa_kuota'] < 0) ? 'minus' : 'plus';
+                        echo '<td class="' . $minus_class . '" style="text-align:center;">' . $row['sisa_kuota'] . '</td>';
+                        echo '<td>' . $row['ket_kuota'] . '</td>';
+                        echo '<td>' . $row['nama_pelanggan'] . '</td>';
+                        echo '<td>' . $row['lokasi'] . '</td>';
+                        echo '<td>' . $row['nomor_kontrak'] . '</td>';
+                        echo '<td>' . $row['tanggal_terbit'] . '</td>';
+                        echo '<td>' . $row['akhir_tenggat'] . '</td>';
+                        echo '<td>' . $row['no_wo'] . '</td>';
+                        echo '<td>' . $row['tgl_wo'] . '</td>';
+                        echo '<td>' . $row['kecamatan'] . '</td>';
+                        echo '</tr>';
                     }
                     ?>
                 </tbody>
             </table>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div class="pagination-container">
+            <span class="pagination-info">Halaman <?php echo $current_page; ?> dari <?php echo $total_pages; ?> | Total Data: <?php echo $total_rows; ?> baris</span>
+            
+            <div style="display: flex; gap: 5px;">
+                <?php if($current_page > 1): ?>
+                    <a href="?page=1<?php echo $pagination_query_string; ?>" class="pagination-btn">|< Awal</a>
+                    <a href="?page=<?php echo $current_page - 1; ?><?php echo $pagination_query_string; ?>" class="pagination-btn">< Sebelumnya</a>
+                <?php else: ?>
+                    <span class="pagination-btn disabled">|< Awal</span>
+                    <span class="pagination-btn disabled">< Sebelumnya</span>
+                <?php endif; ?>
+
+                <!-- Nomor Halaman -->
+                <?php 
+                $start_page = max(1, $current_page - 2);
+                $end_page = min($total_pages, $current_page + 2);
+                
+                if($start_page > 1) {
+                    echo '<span class="pagination-btn" style="cursor: default; background: transparent; border: none;">...</span>';
+                }
+                
+                for($i = $start_page; $i <= $end_page; $i++): 
+                    if($i == $current_page):
+                        echo '<span class="pagination-btn active">' . $i . '</span>';
+                    else:
+                        echo '<a href="?page=' . $i . $pagination_query_string . '" class="pagination-btn">' . $i . '</a>';
+                    endif;
+                endfor;
+                
+                if($end_page < $total_pages) {
+                    echo '<span class="pagination-btn" style="cursor: default; background: transparent; border: none;">...</span>';
+                }
+                ?>
+
+                <?php if($current_page < $total_pages): ?>
+                    <a href="?page=<?php echo $current_page + 1; ?><?php echo $pagination_query_string; ?>" class="pagination-btn">Berikutnya ></a>
+                    <a href="?page=<?php echo $total_pages; ?><?php echo $pagination_query_string; ?>" class="pagination-btn">Akhir >|</a>
+                <?php else: ?>
+                    <span class="pagination-btn disabled">Berikutnya ></span>
+                    <span class="pagination-btn disabled">Akhir >|</span>
+                <?php endif; ?>
+            </div>
         </div>
     </main>
 
