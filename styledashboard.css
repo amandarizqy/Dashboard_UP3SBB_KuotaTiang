@@ -127,31 +127,6 @@
         /* --- Tabel Gaya Kartu --- */
         .table-container { width: 100%; }
 
-        table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0 25px;
-        }
-
-        th {
-            text-align: left;
-            padding: 0 30px;
-            color: #aaa;
-            font-weight: 700;
-            text-transform: uppercase;
-            font-size: 0.85rem;
-            letter-spacing: 1.5px;
-        }
-
-        td {
-            padding: 40px 30px;
-            background: white;
-            vertical-align: middle;
-            transition: 0.3s;
-        }
-
-        tr td:first-child { border-radius: 25px 0 0 25px; }
-        tr td:last-child { border-radius: 0 25px 25px 0; }
 
         .vendor-name { font-size: 1.4rem; font-weight: 800; color: #333; margin-bottom: 8px; }
         .spb-num { color: var(--pln-blue); font-weight: 600; font-family: 'Courier New', monospace; }
@@ -174,3 +149,35 @@
 
         .text-minus { color: #e74c3c !important; }
         .text-blue { color: var(--pln-blue); }
+
+ /* Styling Tabel Pop-out Rapat & Sederhana */
+.table-detail { 
+    width: 100%; 
+    border-collapse: collapse; /* Menghilangkan renggang antar baris */
+    margin-top: 10px; 
+    font-size: 11px; /* Font kecil agar muat banyak data */
+    border: 1px solid #ccc;
+}
+
+.table-detail th { 
+    background: #f0f0f0; 
+    color: #333; 
+    padding: 5px 8px; /* Padding sangat tipis */
+    border: 1px solid #ccc;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.table-detail td { 
+    padding: 4px 8px; /* Padding baris sangat rapat */
+    border: 1px solid #ccc;
+    vertical-align: middle;
+    color: #000;
+}
+
+.table-detail tr:nth-child(even) { background: #f9f9f9; }
+.table-detail tr:hover { background: #f1f1f1; }
+
+/* Warna Indikator */
+.text-red { color: #d9534f; font-weight: bold; }
+.text-green { color: #2ecc71; font-weight: bold; }

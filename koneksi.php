@@ -2,7 +2,8 @@
 $host = "localhost";
 $user = "root";
 $pass = "";
-$db   = "kuotaTiangPLN";
+$db   = "monitorTiang";
+// $db   = "kuotaTiangPLN";
 
 $conn = mysqli_connect($host, $user, $pass, $db);
 

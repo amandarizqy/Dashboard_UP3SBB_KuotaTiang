@@ -6,14 +6,13 @@ if (isset($_POST['save'])) {
     $id_kontrak     = $_POST['id_kontrak'];
     $nama_pelanggan = mysqli_real_escape_string($conn, $_POST['nama_pelanggan']);
     $lokasi         = mysqli_real_escape_string($conn, $_POST['lokasi']);
-    $kebutuhan      = $_POST['kebutuhan'];
-    $ket_kuota      = mysqli_real_escape_string($conn, $_POST['ket_kuota']);
-    $no_wo          = mysqli_real_escape_string($conn, $_POST['no_wo']);
-    $tgl_wo         = $_POST['tgl_wo'];
+    $kebutuhan      = $_POST['kebutuhan']; // Input Manual
+    $ket_kuota      = mysqli_real_escape_string($conn, $_POST['ket_kuota']); // Input Manual
+    $no_wo          = mysqli_real_escape_string($conn, $_POST['no_wo']); 
     $id_ulp         = $_POST['id_ulp'];
 
-    $query = "INSERT INTO pemesanan (id_kontrak, nama_pelanggan, lokasi, kebutuhan, ket_kuota, no_wo, tgl_wo, id_ulp) 
-              VALUES ('$id_kontrak', '$nama_pelanggan', '$lokasi', '$kebutuhan', '$ket_kuota', '$no_wo', '$tgl_wo', '$id_ulp')";
+    $query = "INSERT INTO pemesanan (id_kontrak, nama_pelanggan, lokasi, kebutuhan, ket_kuota, no_wo, id_ulp) 
+              VALUES ('$id_kontrak', '$nama_pelanggan', '$lokasi', '$kebutuhan', '$ket_kuota', '$no_wo', '$id_ulp')";
 
     if (mysqli_query($conn, $query)) {
         echo "<script>alert('Data Pemesanan Berhasil Disimpan!'); window.location='pemesanan.php';</script>";
@@ -29,17 +28,15 @@ if (isset($_POST['save'])) {
     <meta charset="UTF-8">
     <title>Tambah Pemesanan Tiang - PLN</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    
     <style>
         :root { --pln-blue: #00A3E0; --pln-yellow: #FFD100; --bg-gray: #f4f7f9; }
         body { background-color: var(--bg-gray); font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; justify-content: center; padding: 40px 20px; }
         
         .form-card {
-            background: white;
-            width: 100%;
-            max-width: 700px;
-            padding: 40px;
-            border-radius: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            background: white; width: 100%; max-width: 700px; padding: 40px;
+            border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             border-top: 10px solid var(--pln-blue);
         }
 
@@ -53,7 +50,10 @@ if (isset($_POST['save'])) {
             width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 10px; 
             font-size: 14px; outline: none; box-sizing: border-box; transition: 0.3s;
         }
-        .form-control:focus { border-color: var(--pln-blue); }
+        /* Penyesuaian agar Select2 serasi dengan desain */
+        .select2-container--default .select2-selection--single {
+            height: 45px; border: 2px solid #eee; border-radius: 10px; padding-top: 8px;
+        }
 
         .btn-save {
             background: var(--pln-blue); color: white; border: none; width: 100%; 
@@ -72,14 +72,13 @@ if (isset($_POST['save'])) {
 
 <div class="form-card">
     <div class="header-form">
-        <img src="logo_PLN.png" alt="Logo PLN" style="height: 50px; margin-bottom: 10px;">
         <h2>Form Pemesanan Baru</h2>
     </div>
 
     <form action="" method="POST">
         <div class="form-group">
             <label>Pilih Nomor SPB / Vendor</label>
-            <select name="id_kontrak" class="form-control" required>
+            <select name="id_kontrak" class="form-control select2-js" required>
                 <option value="">-- Pilih SPB --</option>
                 <?php
                 $q_kontrak = mysqli_query($conn, "SELECT k.id_kontrak, k.nomor_kontrak, v.nama_vendor, t.jenis_tiang 
@@ -103,25 +102,27 @@ if (isset($_POST['save'])) {
             <textarea name="lokasi" class="form-control" rows="2" placeholder="Alamat lengkap lokasi" required></textarea>
         </div>
 
-        <div style="display: flex; gap: 20px;">
-            <div class="form-group" style="flex: 1;">
-                <label>Nomor WO</label>
-                <input type="text" name="no_wo" class="form-control" placeholder="Contoh: 0000/DAN..." required>
-            </div>
-            <div class="form-group" style="flex: 1;">
-                <label>Tanggal WO</label>
-                <input type="date" name="tgl_wo" class="form-control" required>
-            </div>
+        <div class="form-group">
+            <label>Pilih Nomor WO</label>
+            <select name="no_wo" class="form-control select2-js" required>
+                <option value="">-- Pilih Nomor WO --</option>
+                <?php
+                $q_wo = mysqli_query($conn, "SELECT no_wo, tgl_wo FROM wo ORDER BY tgl_wo DESC");
+                while($w = mysqli_fetch_assoc($q_wo)) {
+                    echo "<option value='".$w['no_wo']."'>".$w['no_wo']." (Tgl: ".$w['tgl_wo'].")</option>";
+                }
+                ?>
+            </select>
         </div>
 
         <div style="display: flex; gap: 20px;">
             <div class="form-group" style="flex: 1;">
                 <label>Kebutuhan (Batang)</label>
-                <input type="number" name="kebutuhan" class="form-control" placeholder="Jml" required>
+                <input type="number" name="kebutuhan" class="form-control" placeholder="Jml Batang" required>
             </div>
             <div class="form-group" style="flex: 1;">
                 <label>Kecamatan (ULP)</label>
-                <select name="id_ulp" class="form-control" required>
+                <select name="id_ulp" class="form-control select2-js" required>
                     <option value="">-- Pilih --</option>
                     <?php
                     $q_ulp = mysqli_query($conn, "SELECT * FROM ulp");
@@ -144,6 +145,18 @@ if (isset($_POST['save'])) {
         <a href="pemesanan.php" class="btn-cancel">Batal</a>
     </form>
 </div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    // Inisialisasi select2 hanya pada class select2-js
+    $('.select2-js').select2({
+        width: '100%'
+    });
+});
+</script>
 
 </body>
 </html>

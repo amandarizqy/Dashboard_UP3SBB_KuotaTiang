@@ -1,0 +1,50 @@
+        :root {
+            --pln-blue: #00A3E0;
+            --pln-yellow: #FFD100;
+            --bg-gray: #f4f7f9;
+            --sidebar-width: 70px;
+            --sidebar-expanded: 240px;
+        }
+
+        body { background-color: var(--bg-gray); margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; }
+
+        /* --- Sidebar Samping --- */
+        #sidebar { width: var(--sidebar-width); background-color: var(--pln-blue); color: white; height: 100vh; position: fixed; transition: 0.3s; overflow: hidden; display: flex; flex-direction: column; border-right: 5px solid var(--pln-yellow); z-index: 1000; }
+        #sidebar.expanded { width: var(--sidebar-expanded); }
+        .sidebar-header { padding: 20px 10px; display: flex; justify-content: center; align-items: center; background: white; margin-bottom: 20px; }
+        .logo-sidebar { width: 40px; transition: 0.3s; }
+        #sidebar.expanded .logo-sidebar { width: 80px; }
+        .nav-item { padding: 20px; display: flex; align-items: center; color: white; text-decoration: none; cursor: pointer; white-space: nowrap; transition: 0.3s; }
+        .nav-item:hover { background-color: rgba(255, 255, 255, 0.1); border-left: 5px solid var(--pln-yellow); }
+        .nav-item i { font-size: 24px; min-width: 30px; margin-right: 20px; text-align: center; }
+        .nav-item span { opacity: 0; transition: 0.3s; }
+        #sidebar.expanded .nav-item span { opacity: 1; }
+
+        /* --- Main Content --- */
+        #main-content { margin-left: var(--sidebar-width); flex-grow: 1; padding: 30px; transition: 0.3s; }
+        
+        .header-box { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .filter-section { display: flex; gap: 10px; border-top: 1px solid #eee; padding-top: 15px; }
+        .filter-select { padding: 8px 12px; border-radius: 6px; border: 1px solid #ddd; font-size: 13px; min-width: 180px; outline: none; }
+
+        .btn-add { background: var(--pln-blue); color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+        .btn-add:hover { background: #008cc1; }
+
+        /* --- Tabel Simpel --- */
+        .table-container { background: white; padding: 10px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { background: #f8f9fa; color: #555; text-align: left; padding: 12px 15px; border-bottom: 2px solid #dee2e6; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; }
+        td { padding: 12px 15px; border-bottom: 1px solid #eee; vertical-align: middle; color: #333; }
+        tr:hover { background-color: #fcfcfc; }
+        
+        .badge-kebutuhan { font-weight: 800; color: var(--pln-blue); font-size: 14px; }
+        .action-links a { text-decoration: none; font-size: 16px; transition: 0.2s; }
+        .action-links a:hover { opacity: 0.7; }
+
+        /* Pagination */
+        .pagination-container { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 25px; }
+        .page-link { padding: 8px 16px; background: white; color: var(--pln-blue); text-decoration: none; border-radius: 6px; font-weight: bold; border: 1px solid #ddd; font-size: 13px; }
+        .page-link:hover { background: var(--pln-blue); color: white; }
+        .page-link.active { background: var(--pln-blue); color: white; border-color: var(--pln-blue); }
+        .page-link.disabled { background: #eee; color: #aaa; pointer-events: none; }
