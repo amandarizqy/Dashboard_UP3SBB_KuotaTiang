@@ -13,23 +13,19 @@ if (!is_array($filter_vendors)) {
 if (!is_array($filter_tiangs)) {
     $filter_tiangs = !empty($filter_tiangs) ? [$filter_tiangs] : [];
 }
-// Normalize and apply status filter if provided
-$filter_status = trim($filter_status);
 
-
-// Build WHERE clause dengan IN untuk multiple values
+// Build WHERE clause
 $where_clauses = [];
 if (!empty($filter_vendors)) {
-    $vendor_list = "'" . implode("','", array_map(function($v) { return mysqli_real_escape_string($GLOBALS['conn'], $v); }, $filter_vendors)) . "'";
+    $vendor_list = "'" . implode("','", array_map(function($v) use ($conn) { return mysqli_real_escape_string($conn, $v); }, $filter_vendors)) . "'";
     $where_clauses[] = "k.id_vendor IN ($vendor_list)";
 }
 if (!empty($filter_tiangs)) {
-    $tiang_list = "'" . implode("','", array_map(function($t) { return mysqli_real_escape_string($GLOBALS['conn'], $t); }, $filter_tiangs)) . "'";
+    $tiang_list = "'" . implode("','", array_map(function($t) use ($conn) { return mysqli_real_escape_string($conn, $t); }, $filter_tiangs)) . "'";
     $where_clauses[] = "k.id_tiang IN ($tiang_list)";
 }
 if (!empty($filter_status)) {
     $fs = mysqli_real_escape_string($conn, $filter_status);
-    // accept both 'non-aktif' and 'nonaktif' by normalizing
     if ($fs === 'non-aktif') $fs = 'nonaktif';
     $where_clauses[] = "k.status = '$fs'";
 }
@@ -49,15 +45,15 @@ header("Pragma: public");
 $output = '<table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse;">' . "\n";
 
 // Header baris
-$headers = ['No', 'Nama PT', 'Ukuran Tiang', 'Kuota', 'Kebutuhan', 'Sisa Kuota', 'Ket Kuota', 'Nama Pelanggan', 'Lokasi', 'No SPB', 'Tgl Terbit SPB', 'Tgl Akhir SPB', 'No WO', 'Tgl WO', 'Kecamatan'];
+$headers = ['No', 'Nama PT', 'Ukuran Tiang', 'Kuota Awal', 'Kebutuhan', 'Sisa Kuota', 'Ket Kuota', 'Nama Pelanggan', 'Lokasi', 'No SPB', 'Tgl Terbit SPB', 'Tgl Akhir SPB', 'No WO (Full)', 'Tgl WO', 'Kecamatan'];
 
-$output .= '<tr style="background-color: #F8F9FA; font-weight: bold; text-align: center; color: #555555;">' . "\n";
+$output .= '<tr style="background-color: #00A3E0; font-weight: bold; text-align: center; color: #FFFFFF;">' . "\n";
 foreach ($headers as $header) {
     $output .= '<td style="border: 1px solid #DEE2E6; padding: 8px;">' . htmlspecialchars($header) . '</td>' . "\n";
 }
 $output .= '</tr>' . "\n";
 
-// Query data dengan filter
+// Query data kontrak
 $q_kontrak = mysqli_query($conn, "SELECT k.*, v.nama_vendor, t.jenis_tiang 
                                   FROM kontrak k 
                                   JOIN vendor v ON k.id_vendor = v.id_vendor 
@@ -71,56 +67,58 @@ while($k = mysqli_fetch_assoc($q_kontrak)) {
     $id_k = $k['id_kontrak'];
     $kuota_berjalan = $k['kuota'];
     
-    // Ambil semua pemesanan untuk kontrak ini
+    // URUTKAN BERDASARKAN TANGGAL WO TERDAHULU (ASC)
     $q_pesan = mysqli_query($conn, "SELECT p.*, u.kecamatan 
                                     FROM pemesanan p 
                                     JOIN ulp u ON p.id_ulp = u.id_ulp 
                                     WHERE p.id_kontrak = '$id_k' 
-                                    ORDER BY p.id_pemesanan ASC");
+                                    ORDER BY p.tgl_wo ASC, p.id_pemesanan ASC");
     
     if(mysqli_num_rows($q_pesan) > 0) {
         $first = true;
         while($p = mysqli_fetch_assoc($q_pesan)) {
             $kuota_berjalan -= $p['kebutuhan'];
             
+            // Gabungkan Sub WO dan Master WO
+            $full_wo = $p['sub_wo'] . "/" . $p['no_wo'];
+            
             $output .= '<tr>' . "\n";
-            $output .= '<td style="border: 1px solid #DEE2E6; padding: 8px;">' . $no++ . '</td>' . "\n";
-            $output .= '<td style="border: 1px solid #DEE2E6; padding: 8px;">' . htmlspecialchars($k['nama_vendor']) . '</td>' . "\n";
-            $output .= '<td style="border: 1px solid #DEE2E6; padding: 8px;">' . htmlspecialchars($k['jenis_tiang']) . '</td>' . "\n";
-            $output .= '<td style="border: 1px solid #DEE2E6; padding: 8px; text-align: center;">' . (($first) ? $k['kuota'] : '') . '</td>' . "\n";
-            $output .= '<td style="border: 1px solid #DEE2E6; padding: 8px; text-align: center;">' . $p['kebutuhan'] . '</td>' . "\n";
-            $output .= '<td style="border: 1px solid #DEE2E6; padding: 8px; text-align: center;">' . $kuota_berjalan . '</td>' . "\n";
-            $output .= '<td style="border: 1px solid #DEE2E6; padding: 8px;">' . htmlspecialchars($p['ket_kuota']) . '</td>' . "\n";
-            $output .= '<td style="border: 1px solid #DEE2E6; padding: 8px;">' . htmlspecialchars($p['nama_pelanggan']) . '</td>' . "\n";
-            $output .= '<td style="border: 1px solid #DEE2E6; padding: 8px;">' . htmlspecialchars($p['lokasi']) . '</td>' . "\n";
-            $output .= '<td style="border: 1px solid #DEE2E6; padding: 8px;">' . htmlspecialchars($k['nomor_kontrak']) . '</td>' . "\n";
-            $output .= '<td style="border: 1px solid #DEE2E6; padding: 8px;">' . date('d/m/Y', strtotime($k['tanggal_terbit'])) . '</td>' . "\n";
-            $output .= '<td style="border: 1px solid #DEE2E6; padding: 8px;">' . date('d/m/Y', strtotime($k['akhir_tenggat'])) . '</td>' . "\n";
-            $output .= '<td style="border: 1px solid #DEE2E6; padding: 8px;">' . htmlspecialchars($p['no_wo']) . '</td>' . "\n";
-            $output .= '<td style="border: 1px solid #DEE2E6; padding: 8px;">' . date('d/m/Y', strtotime($p['tgl_wo'])) . '</td>' . "\n";
-            $output .= '<td style="border: 1px solid #DEE2E6; padding: 8px;">' . htmlspecialchars($p['kecamatan']) . '</td>' . "\n";
+            $output .= '<td style="border: 1px solid #DEE2E6; text-align: center;">' . $no++ . '</td>' . "\n";
+            $output .= '<td style="border: 1px solid #DEE2E6;">' . htmlspecialchars($k['nama_vendor']) . '</td>' . "\n";
+            $output .= '<td style="border: 1px solid #DEE2E6;">' . htmlspecialchars($k['jenis_tiang']) . '</td>' . "\n";
+            $output .= '<td style="border: 1px solid #DEE2E6; text-align: center; font-weight: bold;">' . (($first) ? $k['kuota'] : '-') . '</td>' . "\n";
+            $output .= '<td style="border: 1px solid #DEE2E6; text-align: center;">' . $p['kebutuhan'] . '</td>' . "\n";
+            
+            // Sisa Kuota dengan warna (Merah jika minus)
+            $color = ($kuota_berjalan < 0) ? 'color: #ff0000;' : '';
+            $output .= '<td style="border: 1px solid #DEE2E6; text-align: center; font-weight: bold; '.$color.'">' . $kuota_berjalan . '</td>' . "\n";
+            
+            $output .= '<td style="border: 1px solid #DEE2E6;">' . htmlspecialchars($p['ket_kuota']) . '</td>' . "\n";
+            $output .= '<td style="border: 1px solid #DEE2E6;">' . htmlspecialchars($p['nama_pelanggan']) . '</td>' . "\n";
+            $output .= '<td style="border: 1px solid #DEE2E6;">' . htmlspecialchars($p['lokasi']) . '</td>' . "\n";
+            $output .= '<td style="border: 1px solid #DEE2E6;">' . htmlspecialchars($k['nomor_kontrak']) . '</td>' . "\n";
+            $output .= '<td style="border: 1px solid #DEE2E6; text-align: center;">' . date('d/m/Y', strtotime($k['tanggal_terbit'])) . '</td>' . "\n";
+            $output .= '<td style="border: 1px solid #DEE2E6; text-align: center;">' . date('d/m/Y', strtotime($k['akhir_tenggat'])) . '</td>' . "\n";
+            
+            // Tampilan WO hasil Concat
+            $output .= '<td style="border: 1px solid #DEE2E6;">' . htmlspecialchars($full_wo) . '</td>' . "\n";
+            
+            $output .= '<td style="border: 1px solid #DEE2E6; text-align: center;">' . date('d/m/Y', strtotime($p['tgl_wo'])) . '</td>' . "\n";
+            $output .= '<td style="border: 1px solid #DEE2E6;">' . htmlspecialchars($p['kecamatan']) . '</td>' . "\n";
             $output .= '</tr>' . "\n";
             
             $first = false;
         }
     } else {
-        // Jika tidak ada pemesanan
-        $output .= '<tr>' . "\n";
-        $output .= '<td style="border: 1px solid #DEE2E6; padding: 8px;">' . $no++ . '</td>' . "\n";
-        $output .= '<td style="border: 1px solid #DEE2E6; padding: 8px;">' . htmlspecialchars($k['nama_vendor']) . '</td>' . "\n";
-        $output .= '<td style="border: 1px solid #DEE2E6; padding: 8px;">' . htmlspecialchars($k['jenis_tiang']) . '</td>' . "\n";
-        $output .= '<td style="border: 1px solid #DEE2E6; padding: 8px; text-align: center;">' . $k['kuota'] . '</td>' . "\n";
-        $output .= '<td style="border: 1px solid #DEE2E6; padding: 8px; text-align: center;">0</td>' . "\n";
-        $output .= '<td style="border: 1px solid #DEE2E6; padding: 8px; text-align: center;">' . $k['kuota'] . '</td>' . "\n";
-        $output .= '<td style="border: 1px solid #DEE2E6; padding: 8px;"></td>' . "\n";
-        $output .= '<td style="border: 1px solid #DEE2E6; padding: 8px;">Belum ada realisasi</td>' . "\n";
-        $output .= '<td style="border: 1px solid #DEE2E6; padding: 8px;"></td>' . "\n";
-        $output .= '<td style="border: 1px solid #DEE2E6; padding: 8px;">' . htmlspecialchars($k['nomor_kontrak']) . '</td>' . "\n";
-        $output .= '<td style="border: 1px solid #DEE2E6; padding: 8px;">' . date('d/m/Y', strtotime($k['tanggal_terbit'])) . '</td>' . "\n";
-        $output .= '<td style="border: 1px solid #DEE2E6; padding: 8px;">' . date('d/m/Y', strtotime($k['akhir_tenggat'])) . '</td>' . "\n";
-        $output .= '<td style="border: 1px solid #DEE2E6; padding: 8px;"></td>' . "\n";
-        $output .= '<td style="border: 1px solid #DEE2E6; padding: 8px;"></td>' . "\n";
-        $output .= '<td style="border: 1px solid #DEE2E6; padding: 8px;"></td>' . "\n";
+        // Jika tidak ada pemesanan (Hanya baris Kuota)
+        $output .= '<tr style="background-color: #FCFCFC;">' . "\n";
+        $output .= '<td style="border: 1px solid #DEE2E6; text-align: center;">' . $no++ . '</td>' . "\n";
+        $output .= '<td style="border: 1px solid #DEE2E6;">' . htmlspecialchars($k['nama_vendor']) . '</td>' . "\n";
+        $output .= '<td style="border: 1px solid #DEE2E6;">' . htmlspecialchars($k['jenis_tiang']) . '</td>' . "\n";
+        $output .= '<td style="border: 1px solid #DEE2E6; text-align: center; font-weight: bold;">' . $k['kuota'] . '</td>' . "\n";
+        $output .= '<td style="border: 1px solid #DEE2E6; text-align: center;">0</td>' . "\n";
+        $output .= '<td style="border: 1px solid #DEE2E6; text-align: center; font-weight: bold;">' . $k['kuota'] . '</td>' . "\n";
+        $output .= '<td colspan="9" style="border: 1px solid #DEE2E6; text-align: center; color: #999;">Belum ada realisasi pemesanan</td>' . "\n";
         $output .= '</tr>' . "\n";
     }
 }
