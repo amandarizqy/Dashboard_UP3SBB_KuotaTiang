@@ -3,8 +3,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <title>Pusat Manajemen Data - PLN</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Pusat Manajemen Data - PLN</title> 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
@@ -98,18 +97,18 @@
         }
 
         .menu-container {
-            display: flex;
-            gap: 30px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 50px;
             padding: 40px;
-            flex-wrap: wrap;
-            justify-content: center;
+            width: 100%;
         }
 
         .menu-card {
             background: white;
-            width: 280px;
-            padding: 50px 20px;
-            border-radius: 25px;
+            width: 100%;
+            padding: 30px 15px;
+            border-radius: 15px;
             text-align: center;
             text-decoration: none;
             color: #333;
@@ -161,6 +160,11 @@
                 <i class="fas fa-industry"></i>
                 <h3>Data Vendor</h3>
                 <p>Kelola daftar mitra penyedia barang dan profil vendor resmi PLN.</p>
+            </a>
+            <a href="kelola_wo.php" class="menu-card">
+                <i class="fas fa-tools"></i>
+                <h3>Data WO</h3>
+                <p>Kelola Work Order (WO) terkait pemasangan dan pemeliharaan tiang.</p>
             </a>
         </div>
     </main>

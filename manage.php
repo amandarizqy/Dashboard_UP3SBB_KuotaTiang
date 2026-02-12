@@ -30,7 +30,6 @@ while($col = mysqli_fetch_assoc($res)) {
 <head>
     <meta charset="UTF-8">
     <title>Kelola Data <?php echo ucfirst($table); ?></title>
-    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root { --pln-blue: #00A3E0; --pln-yellow: #FFD100; }

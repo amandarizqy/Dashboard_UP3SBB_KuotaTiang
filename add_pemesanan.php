@@ -6,13 +6,16 @@ if (isset($_POST['save'])) {
     $id_kontrak     = $_POST['id_kontrak'];
     $nama_pelanggan = mysqli_real_escape_string($conn, $_POST['nama_pelanggan']);
     $lokasi         = mysqli_real_escape_string($conn, $_POST['lokasi']);
-    $kebutuhan      = $_POST['kebutuhan']; // Input Manual
-    $ket_kuota      = mysqli_real_escape_string($conn, $_POST['ket_kuota']); // Input Manual
-    $no_wo          = mysqli_real_escape_string($conn, $_POST['no_wo']); 
+    $kebutuhan      = $_POST['kebutuhan'];
+    $ket_kuota      = mysqli_real_escape_string($conn, $_POST['ket_kuota']);
+    $sub_wo         = mysqli_real_escape_string($conn, $_POST['sub_wo']); // Data Kiri (Custom)
+    $no_wo          = mysqli_real_escape_string($conn, $_POST['no_wo']);  // Data Kanan (Master)
+    $tgl_wo         = $_POST['tgl_wo']; 
     $id_ulp         = $_POST['id_ulp'];
 
-    $query = "INSERT INTO pemesanan (id_kontrak, nama_pelanggan, lokasi, kebutuhan, ket_kuota, no_wo, id_ulp) 
-              VALUES ('$id_kontrak', '$nama_pelanggan', '$lokasi', '$kebutuhan', '$ket_kuota', '$no_wo', '$id_ulp')";
+    // Pastikan query menyertakan sub_wo
+    $query = "INSERT INTO pemesanan (id_kontrak, nama_pelanggan, lokasi, kebutuhan, ket_kuota, sub_wo, no_wo, tgl_wo, id_ulp) 
+              VALUES ('$id_kontrak', '$nama_pelanggan', '$lokasi', '$kebutuhan', '$ket_kuota', '$sub_wo', '$no_wo', '$tgl_wo', '$id_ulp')";
 
     if (mysqli_query($conn, $query)) {
         echo "<script>alert('Data Pemesanan Berhasil Disimpan!'); window.location='pemesanan.php';</script>";
@@ -49,11 +52,14 @@ if (isset($_POST['save'])) {
         .form-control {
             width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 10px; 
             font-size: 14px; outline: none; box-sizing: border-box; transition: 0.3s;
+            height: 48px;
         }
-        /* Penyesuaian agar Select2 serasi dengan desain */
+        
+        /* Fix Select2 Height & Layout */
         .select2-container--default .select2-selection--single {
-            height: 45px; border: 2px solid #eee; border-radius: 10px; padding-top: 8px;
+            height: 48px !important; border: 2px solid #eee !important; border-radius: 10px !important; padding-top: 10px;
         }
+        .select2-container { width: 100% !important; }
 
         .btn-save {
             background: var(--pln-blue); color: white; border: none; width: 100%; 
@@ -99,20 +105,33 @@ if (isset($_POST['save'])) {
 
         <div class="form-group">
             <label>Lokasi Pemasangan</label>
-            <textarea name="lokasi" class="form-control" rows="2" placeholder="Alamat lengkap lokasi" required></textarea>
+            <textarea name="lokasi" class="form-control" rows="2" placeholder="Alamat lengkap lokasi" style="height: auto;" required></textarea>
         </div>
 
         <div class="form-group">
-            <label>Pilih Nomor WO</label>
-            <select name="no_wo" class="form-control select2-js" required>
-                <option value="">-- Pilih Nomor WO --</option>
-                <?php
-                $q_wo = mysqli_query($conn, "SELECT no_wo, tgl_wo FROM wo ORDER BY tgl_wo DESC");
-                while($w = mysqli_fetch_assoc($q_wo)) {
-                    echo "<option value='".$w['no_wo']."'>".$w['no_wo']." (Tgl: ".$w['tgl_wo'].")</option>";
-                }
-                ?>
-            </select>
+            <label>Nomor WO (Custom / Master)</label>
+            <div style="display: flex; gap: 15px; align-items: stretch;">
+                <input type="text" name="sub_wo" class="form-control" style="flex: 1;" placeholder="Kiri (Contoh: 12345)" required>
+                
+                <div style="display: flex; align-items: center; font-weight: bold; color: var(--pln-blue); font-size: 20px;">/</div>
+                
+                <div style="flex: 1;">
+                    <select name="no_wo" class="form-control select2-js" required>
+                        <option value="">-- Pilih Master (Kanan) --</option>
+                        <?php
+                        $q_wo = mysqli_query($conn, "SELECT no_wo FROM wo ORDER BY no_wo ASC");
+                        while($w = mysqli_fetch_assoc($q_wo)) {
+                            echo "<option value='".$w['no_wo']."'>".$w['no_wo']."</option>";
+                        }
+                        ?>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Tanggal WO</label>
+            <input type="date" name="tgl_wo" class="form-control" required>
         </div>
 
         <div style="display: flex; gap: 20px;">
@@ -151,7 +170,6 @@ if (isset($_POST['save'])) {
 
 <script>
 $(document).ready(function() {
-    // Inisialisasi select2 hanya pada class select2-js
     $('.select2-js').select2({
         width: '100%'
     });

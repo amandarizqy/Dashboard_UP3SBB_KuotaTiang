@@ -111,16 +111,15 @@ if($total_pages < 1) $total_pages = 1; // Minimal 1 halaman
                 <tbody>
                     <?php
                     // Ambil data dengan JOIN ke tabel wo (untuk mengambil tgl_wo)
-                    $sql = "SELECT p.*, k.nomor_kontrak, v.nama_vendor, t.jenis_tiang, u.kecamatan, w.tgl_wo
-                            FROM pemesanan p
-                            JOIN kontrak k ON p.id_kontrak = k.id_kontrak
-                            JOIN vendor v ON k.id_vendor = v.id_vendor
-                            JOIN tiang t ON k.id_tiang = t.id_tiang
-                            JOIN ulp u ON p.id_ulp = u.id_ulp
-                            JOIN wo w ON p.no_wo = w.no_wo
-                            $where 
-                            ORDER BY p.id_pemesanan DESC 
-                            LIMIT $limit OFFSET $offset";
+                    $sql = "SELECT p.*, CONCAT(p.sub_wo, '/', p.no_wo) AS full_wo, k.nomor_kontrak, v.nama_vendor, u.kecamatan, t.jenis_tiang
+                        FROM pemesanan p
+                        JOIN kontrak k ON p.id_kontrak = k.id_kontrak
+                        JOIN vendor v ON k.id_vendor = v.id_vendor
+                        JOIN tiang t ON k.id_tiang = t.id_tiang
+                        JOIN ulp u ON p.id_ulp = u.id_ulp
+                        $where 
+                        ORDER BY p.id_pemesanan DESC 
+                        LIMIT $limit OFFSET $offset";
 
                     $res = mysqli_query($conn, $sql);
                     if(mysqli_num_rows($res) > 0) {
@@ -144,10 +143,8 @@ if($total_pages < 1) $total_pages = 1; // Minimal 1 halaman
                                     <span class="badge-kebutuhan"><?php echo $row['kebutuhan']; ?></span>
                                 </td>
                                 <td>
-                                    <strong><?php echo $row['no_wo']; ?></strong><br>
-                                    <small style="color:#888;">
-                                        <?php echo date('d/m/Y', strtotime($row['tgl_wo'])); ?>
-                                    </small>
+                                    <strong><?php echo $row['sub_wo'] . "/" . $row['no_wo']; ?></strong><br>
+                                    <small style="color:#888;"><?php echo date('d/m/Y', strtotime($row['tgl_wo'])); ?></small>
                                 </td>
                                 <td><?php echo $row['kecamatan']; ?></td>
                                 <td style="text-align: center;" class="action-links">
