@@ -15,7 +15,7 @@ if (isset($_POST['save'])) {
               VALUES ('$nomor_kontrak', '$tgl_terbit', '$tgl_tenggat', '$id_tiang', '$id_vendor', '$kuota', '$status')";
 
     if (mysqli_query($conn, $query)) {
-        echo "<script>alert('Data Kontrak Berhasil Ditambahkan!'); window.location='manage.php?table=kontrak';</script>";
+        echo "<script>alert('Data Kontrak Berhasil Ditambahkan!'); window.location='kelola_kontrak.php';</script>";
     } else {
         echo "<script>alert('Gagal: " . mysqli_error($conn) . "');</script>";
     }
@@ -155,7 +155,7 @@ if (isset($_POST['save'])) {
         <button type="submit" name="save" class="btn-submit">
             <i class="fas fa-save"></i> SIMPAN KONTRAK
         </button>
-        <a href="manage.php?table=kontrak" class="btn-cancel">Batal dan Kembali</a>
+        <a href="kelola_kontrak.php" class="btn-cancel">Batal dan Kembali</a>
     </form>
 </div>
 
