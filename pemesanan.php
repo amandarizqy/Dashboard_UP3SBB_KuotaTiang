@@ -174,7 +174,7 @@ $total_pages = ceil($total_data / $limit);
                     </div>
                     <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
                         <button type="button" onclick="closeModal()" style="padding: 10px 20px; border: none; border-radius: 8px; cursor:pointer;">Batal</button>
-                        <button type="submit" class="btn-add-new" style="border:none; cursor:pointer;">Download Excel</button>
+                        <button type="submit" class="btn-add-new" onclick="setTimeout(()=> location.reload(), 1000)">Download Excel</button>
                     </div>
                 </div>
             </div>

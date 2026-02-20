@@ -1,20 +1,31 @@
 <?php
 include 'koneksi.php';
 
+// 1. Validasi Input
 if (!isset($_POST['selected_id']) || empty($_POST['selected_id'])) {
     echo "<script>alert('Pilih data terlebih dahulu!'); window.location='pemesanan.php';</script>";
     exit;
 }
 
+// 2. Tangkap Data Form
 $selected_ids = $_POST['selected_id'];
 $new_sub_wo   = mysqli_real_escape_string($conn, $_POST['new_sub_wo']);
 $new_no_wo    = mysqli_real_escape_string($conn, $_POST['new_no_wo']);
 $full_wo_baru = $new_sub_wo . " / " . $new_no_wo;
+$ids_string   = implode(',', array_map('intval', $selected_ids));
 
-$ids_string = implode(',', array_map('intval', $selected_ids));
+// 3. Logika Update: Sinkronisasi WO baru ke Database
+$update_sql = "UPDATE pemesanan SET 
+               sub_wo = '$new_sub_wo', 
+               no_wo = '$new_no_wo' 
+               WHERE id_pemesanan IN ($ids_string)";
 
-$sql = "SELECT p.*, k.nomor_kontrak, k.tanggal_terbit, k.akhir_tenggat, 
-               v.nama_vendor, t.jenis_tiang, u.kecamatan
+if (!mysqli_query($conn, $update_sql)) {
+    die("Gagal memperbarui database: " . mysqli_error($conn));
+}
+
+// 4. Query Data Final untuk Excel
+$sql = "SELECT p.*, k.nomor_kontrak, v.nama_vendor, t.jenis_tiang, u.kecamatan
         FROM pemesanan p
         JOIN kontrak k ON p.id_kontrak = k.id_kontrak
         JOIN vendor v ON k.id_vendor = v.id_vendor
@@ -24,41 +35,41 @@ $sql = "SELECT p.*, k.nomor_kontrak, k.tanggal_terbit, k.akhir_tenggat,
         ORDER BY p.tgl_wo ASC";
 
 $res = mysqli_query($conn, $sql);
+if (!$res) die("Kesalahan Query SQL: " . mysqli_error($conn));
 
-if (!$res) {
-    die("Kesalahan Query SQL: " . mysqli_error($conn));
-}
-
-// Set Header agar file kedownload sebagai .xls
-header("Content-type: application/vnd.ms-excel");
+// 5. Header Download Excel
+header("Content-type: application/vnd-ms-excel");
 header("Content-Disposition: attachment; filename=Export_WO_" . date('Ymd') . ".xls");
 header("Pragma: no-cache");
 header("Expires: 0");
 
+// Proses data ke dalam array agar bisa digunakan berulang (Tabel 1, Tabel 2, dan Footer)
+$data_array = [];
+$total_volume = 0;
+$nama_barang = "";
+
+while ($row = mysqli_fetch_assoc($res)) {
+    $data_array[] = $row;
+    $total_volume += $row['kebutuhan'];
+    $nama_barang = $row['jenis_tiang'];
+}
 ?>
+
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
 <head>
     <meta http-equiv="Content-type" content="text/html;charset=utf-8" />
-
     <style>
-        /* Backup styling untuk browser/printer */
-        @page {
-            mso-page-orientation: landscape;
-            margin: 0.5in 0.5in 0.5in 0.5in;
-        }
         .text-top { vertical-align: top; }
+        @page { mso-page-orientation: landscape; }
     </style>
 </head>
 <body>
 
 <table>
     <tr>
-        <td colspan="7">Lampiran Surat No. <?php echo $full_wo_baru; ?> Tanggal <?php echo date('d F Y'); ?></td>
+        <td colspan="8">Lampiran Surat No. <?php echo $full_wo_baru; ?> Tanggal <?php echo date('d F Y'); ?></td>
     </tr>
-    <tr><td colspan="7"></td></tr>
-    <tr><td colspan="7"></td></tr>
-    <tr><td colspan="7"></td></tr>
-    <tr><td colspan="7"></td></tr>
-    <tr><td colspan="7"></td></tr>
+    <tr><td colspan="8"></td></tr>
 </table>
 
 <table border="1">
@@ -73,22 +84,13 @@ header("Expires: 0");
         </tr>
     </thead>
     <tbody>
-        <?php 
-        $total_volume = 0;
-        $nama_barang = "";
-        $data_array = [];
-        while ($row = mysqli_fetch_assoc($res)) {
-            $data_array[] = $row;
-            $total_volume += $row['kebutuhan']; 
-            $nama_barang = $row['jenis_tiang'];
-        }
-        ?>
         <tr>
-            <td>1</td>
+            <td align="center">1</td>
             <td colspan="2"><?php echo $nama_barang; ?></td>
-            <td>Btg</td>
-            <td><?php echo $total_volume; ?></td>
-            <td></td><td></td>
+            <td align="center">Btg</td>
+            <td align="center"><?php echo $total_volume; ?></td>
+            <td></td>
+            <td></td>
         </tr>
         <tr>
             <td colspan="3" align="right"><b>JUMLAH</b></td>
@@ -98,7 +100,7 @@ header("Expires: 0");
             <td colspan="3" align="right"><b>PPN 11%</b></td>
             <td></td><td></td><td></td><td></td>
         </tr>
-        <tr>
+        <tr style="background-color: #ffff00;">
             <td colspan="3" align="right"><b>TOTAL = JUMLAH + PPN</b></td>
             <td></td><td></td><td></td><td></td>
         </tr>
@@ -109,7 +111,7 @@ header("Expires: 0");
 
 <table>
     <tr>
-        <td colspan="8"><b>Lokasi Pemasangan <?php echo $nama_barang; ?></b></td>
+        <td colspan="8" style="font-weight: bold;">Lokasi Pemasangan <?php echo $nama_barang; ?></td>
     </tr>
 </table>
 <table border="1">
@@ -126,23 +128,21 @@ header("Expires: 0");
         </tr>
     </thead>
     <tbody>
-        <?php 
-        $no = 1;
-        foreach ($data_array as $item) { ?>
+        <?php $no = 1; foreach ($data_array as $item): ?>
             <tr>
-                <td><?php echo $no++; ?></td>
+                <td align="center"><?php echo $no++; ?></td>
                 <td><?php echo $item['nama_pelanggan']; ?></td>
                 <td><?php echo $item['lokasi']; ?></td>
-                <td>Btg</td>
-                <td><?php echo $item['kebutuhan']; ?></td>
-                <td>3 Hari</td>
+                <td align="center">Btg</td>
+                <td align="center"><?php echo $item['kebutuhan']; ?></td>
+                <td align="center">3 Hari</td>
                 <td><?php echo $item['kecamatan']; ?></td>
                 <td></td>
             </tr>
-        <?php } ?>
+        <?php endforeach; ?>
         <tr style="font-weight: bold;">
             <td colspan="4" align="right">Jumlah</td>
-            <td><?php echo $total_volume; ?></td>
+            <td align="center"><?php echo $total_volume; ?></td>
             <td colspan="3"></td>
         </tr>
     </tbody>
@@ -154,20 +154,18 @@ header("Expires: 0");
     <tr><td colspan="8"></td></tr>
     
     <tr>
-        <td></td> <td colspan="3" style="font-weight: bold; vertical-align: top;">Catatan:</td> <td colspan="3"></td> <td align="center" style="vertical-align: top;">Sidoarjo, <?php echo date('d F Y'); ?></td> </tr>
-
+        <td></td> <td colspan="3" class="text-top" style="font-weight: bold;">Catatan:</td> <td colspan="3"></td> <td align="center" class="text-top">Sidoarjo, <?php echo date('d F Y'); ?></td> </tr>
     <tr>
         <td></td>
-        <td colspan="6" style="vertical-align: top;">- SLA mulai diperhitungkan pada saat tanggal email work order diterima</td>
-        <td align="center" style="vertical-align: top;">Asman Perencanaan</td>
+        <td colspan="6" class="text-top">- SLA mulai diperhitungkan pada saat tanggal email work order diterima</td>
+        <td align="center" class="text-top">Asman Perencanaan</td>
     </tr>
-
     <tr>
         <td></td>
-        <td colspan="6" style="vertical-align: top;">- Sesuai Kontrak Rinci No. <?php echo $data_array[0]['nomor_kontrak'] . " " . $data_array[0]['nama_vendor']; ?></td>
+        <td colspan="6" class="text-top">- Sesuai Kontrak Rinci No. <?php echo $data_array[0]['nomor_kontrak'] . " " . $data_array[0]['nama_vendor']; ?></td>
         <td></td>
     </tr>
-
+    
     <tr><td colspan="8"></td></tr>
     <tr><td colspan="8"></td></tr>
     
