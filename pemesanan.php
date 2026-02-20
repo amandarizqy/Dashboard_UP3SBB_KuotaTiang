@@ -46,7 +46,6 @@ $total_pages = ceil($total_data / $limit);
         .btn-add-new { background: var(--pln-blue); color: white; padding: 10px 18px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; }
         
         .modal-wo { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); }
-        .modal-content { background: white; margin: 10% auto; padding: 25px; border-radius: 15px; width: 450px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); }
         
         .selected-row { background-color: #e3f2fd !important; }
         
@@ -55,6 +54,30 @@ $total_pages = ceil($total_data / $limit);
         .btn-nav { padding: 8px 20px; background: #eee; color: #333; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px; border: 1px solid #ddd; }
         .btn-nav:hover { background: #ddd; }
         .btn-nav.disabled { opacity: 0.5; pointer-events: none; }
+
+        .modal-content { 
+        background: white; 
+        margin: 30px auto; /* Jarak atas bawah lebih kecil agar muat di layar */
+        padding: 25px; 
+        border-radius: 15px; 
+        width: 90%; /* Responsif di layar kecil */
+        max-width: 500px; /* Lebar maksimal */
+        box-shadow: 0 5px 20px rgba(0,0,0,0.2); 
+        
+        /* Kunci Perbaikan Scroll: */
+        max-height: 90vh; /* Tinggi maksimal 90% dari tinggi layar */
+        overflow-y: auto; /* Munculkan scrollbar jika konten melebihi max-height */
+        position: relative;
+    }
+
+    /* Mempercantik Scrollbar untuk browser Chrome/Edge */
+    .modal-content::-webkit-scrollbar {
+        width: 8px;
+    }
+    .modal-content::-webkit-scrollbar-thumb {
+        background: #ccc;
+        border-radius: 10px;
+    }
     </style>
 </head>
 <body>
@@ -156,13 +179,15 @@ $total_pages = ceil($total_data / $limit);
 
             <div id="modalWO" class="modal-wo">
                 <div class="modal-content">
-                    <h3 style="margin-top:0;">Input Data WO Baru</h3>
+                    <h3 style="margin-top:0; color: var(--pln-blue);">Input Data WO Baru</h3>
                     <p style="font-size: 13px; color: #666;">Data ini akan digunakan untuk laporan Excel yang Anda download.</p>
                     <hr>
+                    
                     <div style="margin: 15px 0;">
                         <label style="display:block; font-weight:bold; margin-bottom:5px;">Sub WO:</label>
-                        <input type="text" name="new_sub_wo" class="search-box" style="width: 100%;" placeholder="Ketik Sub WO..." required>
+                        <input type="text" name="new_sub_wo" class="search-box" style="width: 100%; box-sizing: border-box;" placeholder="Contoh: 001.WO/MEN" required>
                     </div>
+                    
                     <div style="margin: 15px 0;">
                         <label style="display:block; font-weight:bold; margin-bottom:5px;">Master WO:</label>
                         <select name="new_no_wo" class="search-box" style="width: 100%;" required>
@@ -172,9 +197,31 @@ $total_pages = ceil($total_data / $limit);
                             ?>
                         </select>
                     </div>
-                    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
-                        <button type="button" onclick="closeModal()" style="padding: 10px 20px; border: none; border-radius: 8px; cursor:pointer;">Batal</button>
-                        <button type="submit" class="btn-add-new" onclick="setTimeout(()=> location.reload(), 1000)">Download Excel</button>
+
+                    <div style="margin: 15px 0;">
+                        <label style="display:block; font-weight:bold; margin-bottom:5px;">Harga Satuan (Rp):</label>
+                        <input type="text" name="new_harga_satuan" class="search-box" style="width: 100%; box-sizing: border-box;" placeholder="Contoh: 3000000" required>
+                    </div>
+
+                    <div style="background: #f9f9f9; padding: 10px; border-radius: 8px; border: 1px dashed #ccc;">
+                        <small style="font-weight: bold; color: #555;">Data Pengawas (Opsional)</small>
+                        <div style="margin: 10px 0;">
+                            <label style="display:block; font-size: 13px; margin-bottom:3px;">Menganti:</label>
+                            <input type="text" name="new_pengawas_menganti" class="search-box" style="width: 100%; box-sizing: border-box;" placeholder="Nama / No. HP">
+                        </div>
+                        <div style="margin: 10px 0;">
+                            <label style="display:block; font-size: 13px; margin-bottom:3px;">Karang Pilang:</label>
+                            <input type="text" name="new_pengawas_karpil" class="search-box" style="width: 100%; box-sizing: border-box;" placeholder="Nama / No. HP">
+                        </div>
+                        <div style="margin: 10px 0;">
+                            <label style="display:block; font-size: 13px; margin-bottom:3px;">Taman:</label>
+                            <input type="text" name="new_pengawas_taman" class="search-box" style="width: 100%; box-sizing: border-box;" placeholder="Nama / No. HP">
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; position: sticky; bottom: 0; background: white; padding-top: 10px; border-top: 1px solid #eee;">
+                        <button type="button" onclick="closeModal()" style="padding: 10px 20px; border: 1px solid #ccc; background: #fff; border-radius: 8px; cursor:pointer;">Batal</button>
+                        <button type="submit" class="btn-add-new" style="border:none; cursor:pointer; background: #27ae60;">Download Excel</button>
                     </div>
                 </div>
             </div>
