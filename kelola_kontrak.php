@@ -18,42 +18,8 @@ $q = isset($_GET['q']) ? mysqli_real_escape_string($conn, $_GET['q']) : '';
     <meta charset="UTF-8">
     <title>Kelola Data Kontrak - PLN</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="styleKontrak.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        :root { --pln-blue: #00A3E0; --pln-yellow: #FFD100; }
-        body { background-color: #f8f9fa; margin: 0; padding: 20px; font-family: 'Segoe UI', sans-serif; }
-        
-        .main-wrapper { display: flex; gap: 24px; align-items: flex-start; max-width: 1400px; margin: 0 auto; }
-
-        /* Panel Kiri */
-        .left-panel { 
-            width: 320px; background: white; padding: 30px; border-radius: 20px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; flex-direction: column; 
-            gap: 20px; position: sticky; top: 20px;
-        }
-
-        .right-panel { flex: 1; min-width: 0; }
-        .logo-img { height: 60px; object-fit: contain; margin-bottom: 10px; }
-        .back-btn { text-decoration: none; color: var(--pln-blue); font-weight: 600; font-size: 14px; }
-        .header-title h2 { margin: 0; color: #333; font-size: 22px; }
-        .search-form { display: flex; flex-direction: column; gap: 10px; }
-        .search-input { padding: 12px; border: 1px solid #ddd; border-radius: 10px; outline: none; }
-        .search-btn { padding: 12px; border-radius: 10px; border: none; background: var(--pln-blue); color: white; font-weight: bold; cursor: pointer; }
-        .btn-add { background: var(--pln-yellow); color: #333; padding: 15px; border-radius: 12px; text-decoration: none; font-weight: 800; text-align: center; }
-
-        /* Tabel Khusus Kontrak */
-        table { width: 100%; border-collapse: separate; border-spacing: 0 15px; }
-        th { padding: 10px 20px; text-align: left; color: #aaa; font-size: 11px; text-transform: uppercase; }
-        td { padding: 20px; background: white; vertical-align: middle; border-top: 1px solid #f0f0f0; border-bottom: 1px solid #f0f0f0; }
-        tr td:first-child { border-radius: 15px 0 0 15px; border-left: 1px solid #f0f0f0; }
-        tr td:last-child { border-radius: 0 15px 15px 0; border-right: 1px solid #f0f0f0; text-align: right; }
-        
-        .vendor-text { font-weight: bold; color: #333; display: block; }
-        .contract-text { font-size: 12px; color: var(--pln-blue); font-family: monospace; }
-        .action-btns a { margin-left: 15px; text-decoration: none; font-weight: bold; font-size: 13px; }
-        .delete { color: #e74c3c; }
-        .edit { color: var(--pln-blue); }
-    </style>
 </head>
 <body>
     <div class="main-wrapper">
@@ -86,21 +52,23 @@ $q = isset($_GET['q']) ? mysqli_real_escape_string($conn, $_GET['q']) : '';
                 </thead>
                 <tbody>
                     <?php
-                    // Query JOIN untuk mendapatkan NAMA Vendor dan Jenis Tiang
-                    $sql = "SELECT k.*, v.nama_vendor, t.jenis_tiang 
-                            FROM kontrak k
-                            JOIN vendor v ON k.id_vendor = v.id_vendor
-                            JOIN tiang t ON k.id_tiang = t.id_tiang";
+                        $sql = "SELECT k.*, v.nama_vendor, t.jenis_tiang 
+                                FROM kontrak k
+                                JOIN vendor v ON k.id_vendor = v.id_vendor
+                                JOIN tiang t ON k.id_tiang = t.id_tiang";
 
-                    if ($q !== '') {
-                        $sql .= " WHERE v.nama_vendor LIKE '%$q%' OR k.nomor_kontrak LIKE '%$q%'";
-                    }
-                    $sql .= " ORDER BY k.id_kontrak DESC";
+                        if ($q !== '') {
+                            $sql .= " WHERE v.nama_vendor LIKE '%$q%' OR k.nomor_kontrak LIKE '%$q%'";
+                        }
 
-                    $result = mysqli_query($conn, $sql);
-                    if(mysqli_num_rows($result) > 0) {
-                        while($row = mysqli_fetch_assoc($result)) {
-                            ?>
+                        // ORDER BY status ASC agar 'aktif' muncul di atas 'nonaktif'
+                        $sql .= " ORDER BY k.status ASC, k.id_kontrak DESC";
+
+                        $result = mysqli_query($conn, $sql);
+
+                        if(mysqli_num_rows($result) > 0) {
+                            while($row = mysqli_fetch_assoc($result)) {
+                    ?>
                             <tr>
                                 <td>
                                     <span class="vendor-text"><?php echo $row['nama_vendor']; ?></span>
@@ -110,21 +78,66 @@ $q = isset($_GET['q']) ? mysqli_real_escape_string($conn, $_GET['q']) : '';
                                 <td><?php echo date('d/m/Y', strtotime($row['tanggal_terbit'])); ?></td>
                                 <td><?php echo date('d/m/Y', strtotime($row['akhir_tenggat'])); ?></td>
                                 <td style="font-weight:bold; color:var(--pln-blue);"><?php echo $row['kuota']; ?></td>
-                                <td><?php echo $row['status']; ?></td>
+                                
+                                <td>
+                                    <span class="status-label" id="label-<?php echo $row['id_kontrak']; ?>" style="color: <?php echo ($row['status'] == 'aktif') ? '#333' : '#999'; ?>">
+                                        <?php echo $row['status']; ?>
+                                    </span>
+                                    <br>
+                                    <label class="switch">
+                                        <input type="checkbox" 
+                                               class="status-toggle" 
+                                               data-id="<?php echo $row['id_kontrak']; ?>" 
+                                               <?php echo ($row['status'] == 'aktif') ? 'checked' : ''; ?>>
+                                        <span class="slider"></span>
+                                    </label>
+                                </td>
+
                                 <td class="action-btns">
                                     <a href="edit.php?id=<?php echo $row['id_kontrak']; ?>" class="edit"><i class="fas fa-edit"></i> Edit</a>
                                     <a href="kelola_kontrak.php?delete_id=<?php echo $row['id_kontrak']; ?>" class="delete" onclick="return confirm('Hapus kontrak ini?')"><i class="fas fa-trash"></i> Hapus</a>
                                 </td>
                             </tr>
-                            <?php
+                    <?php
+                            }
+                        } else {
+                            echo "<tr><td colspan='7' style='text-align:center; padding:50px; color:#999;'>Tidak ada data kontrak ditemukan.</td></tr>";
                         }
-                    } else {
-                        echo "<tr><td colspan='6' style='text-align:center; padding:50px; color:#999;'>Tidak ada data kontrak ditemukan.</td></tr>";
-                    }
                     ?>
                 </tbody>
             </table>
         </section>
     </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+    $(document).ready(function() {
+        $('.status-toggle').on('change', function() {
+            var contractId = $(this).data('id');
+            var newStatus = $(this).is(':checked') ? 'aktif' : 'nonaktif';
+            var label = $('#label-' + contractId);
+
+            $.ajax({
+                url: 'update_status.php', // Pastikan file ini sudah dibuat
+                type: 'POST',
+                data: {
+                    id: contractId,
+                    status: newStatus
+                },
+                success: function() {
+                    label.text(newStatus);
+                    if(newStatus == 'aktif') {
+                        label.css('color', '#333');
+                    } else {
+                        label.css('color', '#999');
+                    }
+                },
+                error: function() {
+                    alert('Gagal mengubah status. Coba lagi.');
+                }
+            });
+        });
+    });
+    </script>
 </body>
 </html>

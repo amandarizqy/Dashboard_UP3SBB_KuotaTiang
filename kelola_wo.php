@@ -63,7 +63,7 @@ if (isset($_GET['delete'])) {
 <body>
 
 <div class="header-nav">
-    <a href="pemesanan.php" class="btn-back"><i class="fas fa-arrow-left"></i> Kembali ke Riwayat Pemesanan</a>
+    <a href="menu.php" class="btn-back"><i class="fas fa-arrow-left"></i> Kembali</a>
 </div>
 
 <div class="container">
