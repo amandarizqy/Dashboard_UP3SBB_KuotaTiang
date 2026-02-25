@@ -329,3 +329,86 @@
         .filter-box a:hover {
             background-color: #dee2e6;
         }
+
+        /* Pastikan modal menutupi seluruh layar */
+#filterModal.modal {
+    display: none; /* Default sembunyi */
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(3px);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+    padding: 20px; /* Jarak aman agar tidak menempel ke pinggir layar */
+}
+
+/* Munculkan modal saat class 'show' aktif */
+#filterModal.modal.show {
+    display: flex;
+}
+
+.modal-content {
+    background: white;
+    width: 100%;
+    max-width: 550px; /* Lebar maksimal modal */
+    max-height: 90vh; /* Modal tidak akan lebih dari 90% tinggi layar */
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column; /* Membagi modal menjadi Header, Body, Footer */
+    box-shadow: 0 5px 30px rgba(0,0,0,0.3);
+    overflow: hidden; /* Sembunyikan luapan di luar radius border */
+}
+
+.modal-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+}
+
+/* Bagian inilah yang akan memiliki Scrollbar */
+.modal-body {
+    padding: 20px;
+    overflow-y: auto; /* Aktifkan scroll vertikal */
+    flex-grow: 1; /* Biarkan mengambil sisa ruang yang tersedia */
+}
+
+/* Styling Grup Filter agar rapi */
+.filter-section {
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 200px; /* Batasi tinggi list checkbox jika terlalu banyak */
+    overflow-y: auto; /* Scroll di dalam list jika vendor sangat banyak */
+    padding: 10px;
+    border: 1px solid #f0f0f0;
+    border-radius: 8px;
+    background: #fafafa;
+}
+
+.filter-group label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    cursor: pointer;
+    padding: 4px 0;
+}
+
+/* Menjaga area tombol tetap di bawah dan tidak ikut ter-scroll */
+.modal-footer-actions {
+    padding: 15px 20px;
+    border-top: 1px solid #eee;
+    background: #fff;
+    display: flex;
+    gap: 10px;
+}

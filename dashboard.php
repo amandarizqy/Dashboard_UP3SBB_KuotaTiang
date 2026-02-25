@@ -36,38 +36,38 @@ $filter_tiang  = isset($_GET['filter_tiang']) ? $_GET['filter_tiang'] : '';
         .text-blue { color: #00A3E0 !important; font-weight: bold; }
         .total-quota-box { padding: 10px 25px !important; font-size: 2rem !important; min-width: 100px; text-align: center; }
         /* CSS untuk Tabel Pop-out agar Rapat dan Simpel */
-.table-detail { 
-    width: 100%; 
-    border-collapse: collapse; /* Menghilangkan jarak antar sel agar tidak renggang */
-    margin-top: 10px; 
-    font-size: 11px; /* Ukuran font lebih kecil agar padat */
-}
+        .table-detail { 
+            width: 100%; 
+            border-collapse: collapse; /* Menghilangkan jarak antar sel agar tidak renggang */
+            margin-top: 10px; 
+            font-size: 11px; /* Ukuran font lebih kecil agar padat */
+        }
 
-.table-detail th { 
-    background: #f2f2f2; 
-    color: #333; 
-    padding: 6px 8px; /* Padding kecil agar rapat */
-    border: 1px solid #ccc; /* Garis tipis */
-    text-align: center;
-    white-space: nowrap;
-}
+        .table-detail th { 
+            background: #f2f2f2; 
+            color: #333; 
+            padding: 6px 8px; /* Padding kecil agar rapat */
+            border: 1px solid #ccc; /* Garis tipis */
+            text-align: center;
+            white-space: nowrap;
+        }
 
-.table-detail td { 
-    padding: 5px 8px; /* Padding baris rapat */
-    border: 1px solid #ccc;
-    vertical-align: middle;
-    color: #000;
-}
+        .table-detail td { 
+            padding: 5px 8px; /* Padding baris rapat */
+            border: 1px solid #ccc;
+            vertical-align: middle;
+            color: #000;
+        }
 
-/* Warna khusus indikator */
-.text-red { color: #e74c3c; font-weight: bold; }
-.text-green { color: #27ae60; font-weight: bold; }
+        /* Warna khusus indikator */
+        .text-red { color: #e74c3c; font-weight: bold; }
+        .text-green { color: #27ae60; font-weight: bold; }
 
-/* Menghilangkan bayangan dan margin berlebih di modal */
-.modal-content { 
-    padding: 15px; 
-    width: 85%; /* Lebih lebar agar tabel tidak tertekuk */
-}
+        /* Menghilangkan bayangan dan margin berlebih di modal */
+        .modal-content { 
+            padding: 15px; 
+            width: 85%; /* Lebih lebar agar tabel tidak tertekuk */
+        }
     </style>
 </head>
 <body>
@@ -84,9 +84,10 @@ $filter_tiang  = isset($_GET['filter_tiang']) ? $_GET['filter_tiang'] : '';
 
     <main id="main-content">
         <header class="header-section">
-            <div class="title-container">
+            <div class="title-container" style="display: flex; align-items: center; gap: 20px;">
                 <h1 style="color:#00A3E0; margin:0;">Monitoring Kuota</h1>
-                <form action="" method="GET" class="filter-container">
+                
+                <form action="" method="GET" class="filter-container" style="display: flex; align-items: center; gap: 10px; margin: 0;">
                     <select name="filter_vendor" class="select-filter" onchange="this.form.submit()">
                         <option value="">-- Semua Vendor --</option>
                         <?php 
@@ -97,6 +98,7 @@ $filter_tiang  = isset($_GET['filter_tiang']) ? $_GET['filter_tiang'] : '';
                         }
                         ?>
                     </select>
+
                     <select name="filter_tiang" class="select-filter" onchange="this.form.submit()">
                         <option value="">-- Semua Ukuran --</option>
                         <?php 
@@ -107,8 +109,14 @@ $filter_tiang  = isset($_GET['filter_tiang']) ? $_GET['filter_tiang'] : '';
                         }
                         ?>
                     </select>
+
+                    <a href="kuota.php" class="btn-cek-kuota">
+                        <i class="fa-solid fa-chart-pie"></i> Cek Kuota
+                    </a>
+                    
                 </form>
             </div>
+
             <div class="total-quota-box">
                 <?php
                 $where_clauses = ["k.status = 'aktif'"];
