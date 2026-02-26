@@ -85,7 +85,8 @@ $total_pages = ceil($total_data / $limit);
         <div class="sidebar-header"><img src="logo_PLN.png" alt="Logo PLN" class="logo-sidebar"></div>
         <div class="nav-item" onclick="toggleSidebar()"><i class="fas fa-bars"></i><span>Menu</span></div>
         <a href="dashboard.php" class="nav-item"><i class="fas fa-home"></i><span>Dashboard</span></a>
-        <a href="menu.php" class="nav-item"><i class="fas fa-database"></i><span>Master Data</span></a>
+        <hr style="width: 80%; border: 0.5px solid rgba(255,255,255,0.1); margin: 10px auto;">
+        <a href="menu.php" class="nav-item"><i class="fas fa-database"></i><span>Manajemen Data</span></a>
         <a href="pemesanan.php" class="nav-item"><i class="fas fa-shopping-cart"></i><span>Pemesanan</span></a>
         <a href="histori.php" class="nav-item"><i class="fas fa-history"></i><span>History</span></a>
     </nav>
