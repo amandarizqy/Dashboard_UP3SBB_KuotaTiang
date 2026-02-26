@@ -12,12 +12,12 @@ if (isset($_GET['delete_id'])) {
 // 2. LOGIKA FILTER, SEARCH & PAGINATION
 $filter_vendor = isset($_GET['filter_vendor']) ? $_GET['filter_vendor'] : '';
 $filter_tiang  = isset($_GET['filter_tiang']) ? $_GET['filter_tiang'] : '';
-$search_kontrak = isset($_GET['search_kontrak']) ? mysqli_real_escape_string($conn, $_GET['search_kontrak']) : '';
+$search_nama = isset($_GET['search_nama']) ? mysqli_real_escape_string($conn, $_GET['search_nama']) : '';
 
 $conditions = [];
 if ($filter_vendor != '') $conditions[] = "k.id_vendor = '$filter_vendor'";
 if ($filter_tiang != '') $conditions[] = "k.id_tiang = '$filter_tiang'";
-if ($search_kontrak != '') $conditions[] = "k.nomor_kontrak LIKE '%$search_kontrak%'";
+if ($search_nama != '') $conditions[] = "p.nama_pelanggan LIKE '%$search_nama%'";
 
 $where = count($conditions) > 0 ? " WHERE " . implode(' AND ', $conditions) : "";
 
@@ -109,7 +109,7 @@ $total_pages = ceil($total_data / $limit);
             </div>
 
             <form action="" method="GET" class="filter-section" style="display: flex; gap: 10px;">
-                <input type="text" name="search_kontrak" class="search-box" placeholder="Cari No. Kontrak..." value="<?php echo htmlspecialchars($search_kontrak); ?>">
+                <input type="text" name="search_nama" class="search-box" placeholder="Cari Nama Pelanggan" value="<?php echo htmlspecialchars($search_nama); ?>">
                 <select name="filter_vendor" class="search-box" style="width: 150px;" onchange="this.form.submit()">
                     <option value="">-- Vendor --</option>
                     <?php 
@@ -169,12 +169,12 @@ $total_pages = ceil($total_data / $limit);
             </div>
 
             <div class="pagination-simple">
-                <a href="?page=<?php echo ($page > 1) ? ($page - 1) : 1; ?>&search_kontrak=<?php echo $search_kontrak; ?>&filter_vendor=<?php echo $filter_vendor; ?>" 
+                <a href="?page=<?php echo ($page > 1) ? ($page - 1) : 1; ?>&search_nama=<?php echo $search_nama; ?>&filter_vendor=<?php echo $filter_vendor; ?>" 
                    class="btn-nav <?php if($page <= 1) echo 'disabled'; ?>"><i class="fas fa-arrow-left"></i> Sebelumnya</a>
                 
                 <span style="font-weight: bold; color: #555;">Halaman <?php echo $page; ?> dari <?php echo $total_pages; ?></span>
 
-                <a href="?page=<?php echo ($page < $total_pages) ? ($page + 1) : $total_pages; ?>&search_kontrak=<?php echo $search_kontrak; ?>&filter_vendor=<?php echo $filter_vendor; ?>" 
+                <a href="?page=<?php echo ($page < $total_pages) ? ($page + 1) : $total_pages; ?>&search_nama=<?php echo $search_nama; ?>&filter_vendor=<?php echo $filter_vendor; ?>" 
                    class="btn-nav <?php if($page >= $total_pages) echo 'disabled'; ?>">Selanjutnya <i class="fas fa-arrow-right"></i></a>
             </div>
 
