@@ -1,6 +1,6 @@
-CREATE DATABASE monitoringtiang;
+CREATE DATABASE monitortiang;
 
-USE monitoringtiang;
+USE monitortiang;
 
 -- 1. Tabel Master Vendor
 CREATE TABLE vendor (
