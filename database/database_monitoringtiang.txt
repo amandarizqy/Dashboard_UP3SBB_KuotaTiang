@@ -1,0 +1,63 @@
+CREATE DATABASE monitoringtiang;
+
+USE monitoringtiang;
+
+-- 1. Tabel Master Vendor
+CREATE TABLE vendor (
+    id_vendor INT(11) PRIMARY KEY AUTO_INCREMENT,
+    nama_vendor VARCHAR(100) NOT NULL
+);
+
+-- 2. Tabel Master Tiang
+CREATE TABLE tiang (
+    id_tiang INT(11) PRIMARY KEY AUTO_INCREMENT,
+    jenis_tiang VARCHAR(50) NOT NULL
+);
+
+-- 3. Tabel Master ULP
+CREATE TABLE ulp (
+    id_ulp INT(11) PRIMARY KEY AUTO_INCREMENT,
+    kecamatan VARCHAR(50) NOT NULL
+);
+
+-- 4. Tabel Master WO (Penambahan Sesuai Permintaan)
+CREATE TABLE wo (
+    no_wo VARCHAR(100) PRIMARY KEY,
+    tgl_wo DATE NOT NULL,
+    deskripsi_wo TEXT
+);
+
+-- 5. Tabel Kontrak
+-- Tabel ini memiliki relasi ke Vendor dan Tiang
+CREATE TABLE kontrak (
+    id_kontrak INT(11) PRIMARY KEY AUTO_INCREMENT,
+    nomor_kontrak VARCHAR(100) UNIQUE NOT NULL,
+    tanggal_terbit DATE NOT NULL,
+    akhir_tenggat DATE NOT NULL,
+    id_tiang INT(11),
+    id_vendor INT(11),
+    kuota INT(11) NOT NULL,
+    status ENUM('aktif', 'nonaktif') DEFAULT 'aktif',
+    FOREIGN KEY (id_tiang) REFERENCES tiang(id_tiang) ON DELETE SET NULL,
+    FOREIGN KEY (id_vendor) REFERENCES vendor(id_vendor) ON DELETE SET NULL
+);
+
+-- 6. Tabel Pemesanan
+-- Tabel ini memiliki relasi ke Kontrak, ULP, dan Master WO
+CREATE TABLE pemesanan (
+    id_pemesanan INT(11) PRIMARY KEY AUTO_INCREMENT,
+    id_kontrak INT(11),
+    nama_pelanggan VARCHAR(255) NOT NULL,
+    lokasi TEXT,
+    kebutuhan INT(11) NOT NULL,
+    ket_kuota TEXT,
+    no_wo VARCHAR(100),
+    id_ulp INT(11),
+    FOREIGN KEY (id_kontrak) REFERENCES kontrak(id_kontrak) ON DELETE CASCADE,
+    FOREIGN KEY (id_ulp) REFERENCES ulp(id_ulp) ON DELETE SET NULL,
+    FOREIGN KEY (no_wo) REFERENCES wo(no_wo) ON DELETE CASCADE
+);
+
+-- Tambahkan kolom untuk bagian custom (Data Kiri)
+ALTER TABLE pemesanan ADD COLUMN sub_wo VARCHAR(50) AFTER no_wo; 
+ALTER TABLE pemesanan ADD COLUMN tgl_wo DATE;
